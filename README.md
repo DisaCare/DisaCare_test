@@ -1,17 +1,17 @@
-# 🗺️ AccessMap — Peta Akses Inklusif
+# DisaCare Bandung
 
-> Platform GIS interaktif berbasis crowdsourcing untuk memetakan aksesibilitas fasilitas publik bagi penyandang disabilitas.
+Platform portal informasi dan direktori spasial aksesibilitas fasilitas publik di Kota Bandung bagi penyandang disabilitas.
 
 ---
 
-## 📌 Daftar Isi
+## Daftar Isi
 
 - [Gambaran Umum](#gambaran-umum)
 - [Arsitektur Sistem](#arsitektur-sistem)
 - [Workflow Aplikasi](#workflow-aplikasi)
 - [Struktur Direktori](#struktur-direktori)
 - [Tech Stack](#tech-stack)
-- [Peran & Hak Akses](#peran--hak-akses)
+- [Peran dan Hak Akses](#peran-dan-hak-akses)
 - [Fitur Utama](#fitur-utama)
 - [Cara Menjalankan](#cara-menjalankan)
 - [Dokumentasi Lanjutan](#dokumentasi-lanjutan)
@@ -20,18 +20,26 @@
 
 ## Gambaran Umum
 
-**AccessMap** adalah platform sistem informasi geografis (GIS) interaktif yang memetakan tingkat aksesibilitas fasilitas publik bagi penyandang disabilitas. Aplikasi ini menggabungkan dua sumber data:
+**DisaCare** adalah platform portal informasi berbasis web yang memetakan tingkat aksesibilitas fasilitas publik di wilayah Kota Bandung bagi penyandang disabilitas. Aplikasi ini menggunakan pendekatan data hibrida yang menggabungkan dua sumber data utama:
 
 | Sumber Data | Keterangan |
 |---|---|
-| **Official Data** | Data terverifikasi yang dimasukkan oleh Developer/Admin |
-| **Crowdsourced Data** | Kontribusi laporan foto & checklist dari mahasiswa/warga |
+| Official Data | Data terverifikasi yang dimasukkan langsung oleh Developer/Admin (contoh: Balai Kota Bandung, BIP, Gedung Sate, kampus-kampus) |
+| Crowdsourced Data | Kontribusi laporan, checklist fasilitas, dan foto bukti fisik dari mahasiswa dan warga Bandung |
 
-### Tujuan Utama
+Platform ini juga dirancang secara inklusif dengan fitur aksesibilitas bawaan seperti Text-to-Speech, High Contrast Mode, dan Font Resizer agar dapat diakses langsung oleh penyandang disabilitas.
 
-- Membantu penyandang disabilitas menemukan fasilitas publik yang aksesibel
-- Mendorong partisipasi masyarakat dalam pelaporan kondisi fasilitas
-- Menyediakan dasbor pengawasan fasilitas ramah disabilitas berbasis data real-time
+**Tim Pengembang**
+
+| Nama | Peran |
+|---|---|
+| Affifah | ... |
+| Alifya | ... |
+| Al Yasmin | ... |
+| Zahra | ... |
+
+Mata Kuliah: Literasi Manusia
+Lokasi Studi Kasus: Kota Bandung, Jawa Barat
 
 ---
 
@@ -39,22 +47,26 @@
 
 ```mermaid
 graph TB
-    subgraph CLIENT["🖥️ Client Layer (Next.js + React)"]
-        FE_MAP["Peta Interaktif\n(Leaflet.js + OSM)"]
-        FE_FORM["Form Kontribusi"]
-        FE_ADMIN["Panel Admin"]
-        FE_AUTH["Auth Pages"]
+    subgraph CLIENT["Client Layer (Next.js + React)"]
+        FE_MAP["Halaman Peta & Direktori"]
+        FE_DETAIL["Halaman Detail Tempat + Mini-Map"]
+        FE_FORM["Form Kontribusi Laporan"]
+        FE_ADMIN["Panel Admin Verifikasi"]
+        FE_AUTH["Halaman Login / Register"]
+        FE_A11Y["Komponen Aksesibilitas\n(TTS, High Contrast, Font Resizer)"]
     end
 
-    subgraph GATEWAY["🔀 API Gateway"]
-        JWT["JWT Middleware\n(Auth Guard)"]
+    subgraph GATEWAY["API Gateway"]
+        JWT["JWT Middleware (Auth Guard)"]
         RATE["Rate Limiter"]
+        VALID["Input Validator"]
     end
 
-    subgraph BACKEND["⚙️ Backend Layer (Node.js + Express)"]
-        ROUTE_PLACES["Routes: /api/places"]
-        ROUTE_AUTH["Routes: /api/auth"]
-        ROUTE_UPLOAD["Routes: /api/upload"]
+    subgraph BACKEND["Backend Layer (Node.js + Express)"]
+        direction TB
+        ROUTE_PLACES["Routes /api/places"]
+        ROUTE_AUTH["Routes /api/auth"]
+        ROUTE_UPLOAD["Routes /api/upload"]
 
         CTRL_PLACES["Places Controller"]
         CTRL_AUTH["Auth Controller"]
@@ -62,18 +74,18 @@ graph TB
 
         SVC_PLACES["Places Service"]
         SVC_AUTH["Auth Service"]
-        SVC_SCORE["Scoring Service\n(Kalkulasi Rapor)"]
+        SVC_SCORE["Scoring Service (Kalkulasi Rapor %)"]
     end
 
-    subgraph DB["🗄️ Data Layer (MySQL)"]
-        TBL_PLACES["Tabel: places"]
-        TBL_USERS["Tabel: users"]
-        TBL_CHECKLISTS["Tabel: accessibility_checklists"]
-        TBL_PHOTOS["Tabel: photo_proofs"]
+    subgraph DB["Data Layer (MySQL)"]
+        TBL_PLACES["places"]
+        TBL_USERS["users"]
+        TBL_CHECKLISTS["accessibility_checklists"]
+        TBL_PHOTOS["photo_proofs"]
     end
 
-    subgraph STORAGE["📦 File Storage"]
-        UPLOAD_DIR["Upload Directory\n(/uploads/photos)"]
+    subgraph STORAGE["File Storage"]
+        UPLOAD_DIR["uploads/photos/"]
     end
 
     FE_MAP & FE_FORM & FE_ADMIN --> GATEWAY
@@ -82,7 +94,7 @@ graph TB
     ROUTE_AUTH --> CTRL_AUTH --> SVC_AUTH --> TBL_USERS
     ROUTE_UPLOAD --> CTRL_UPLOAD --> UPLOAD_DIR
     SVC_PLACES --> SVC_SCORE
-    TBL_PHOTOS --> UPLOAD_DIR
+    TBL_PHOTOS -.-> UPLOAD_DIR
 ```
 
 ---
@@ -93,31 +105,32 @@ graph TB
 
 ```mermaid
 flowchart LR
-    A([Buka AccessMap]) --> B[Lihat Peta Interaktif]
-    B --> C{Filter Data}
-    C -->|Semua| D[Tampilkan All Pins]
-    C -->|Official| E[Tampilkan Pin Biru]
-    C -->|Komunitas| F[Tampilkan Pin Hijau]
-    D & E & F --> G[Klik Pin Lokasi]
-    G --> H[Lihat Rapor Aksesibilitas]
-    H --> I[Lihat Detail & Foto]
+    A([Buka DisaCare]) --> B[Lihat Direktori & Peta]
+    B --> C{Cari / Filter Tempat}
+    C -->|Kata kunci| D[Hasil Pencarian]
+    C -->|Kategori| E[Filter: Mall / Kampus / RS]
+    D & E --> F[Pilih Tempat]
+    F --> G[Halaman Detail Tempat]
+    G --> H[Lihat Mini-Map Lokasi]
+    G --> I[Lihat Rapor Aksesibilitas]
+    G --> J[Gunakan Fitur TTS / Kontras Tinggi]
 ```
 
-### B. Alur Kontributor (Laporan Baru)
+### B. Alur Kontributor
 
 ```mermaid
 flowchart TD
     A([Login Akun]) --> B{JWT Valid?}
     B -->|Tidak| C[Redirect ke Login]
     B -->|Ya| D[Buka Form Kontribusi]
-    D --> E[Isi Nama & Koordinat Lokasi]
+    D --> E[Isi Nama, Koordinat, Kategori]
     E --> F[Isi Checklist Fasilitas]
-    F --> G[Upload Foto Bukti Fisik]
+    F --> G[Upload Foto Bukti Fisik - Wajib]
     G --> H{Validasi Input}
     H -->|Gagal| I[Tampilkan Error]
-    H -->|Berhasil| J[POST /api/places/contribute]
-    J --> K[Status: user_contributed\nis_verified: false]
-    K --> L[Notifikasi: Menunggu Verifikasi Admin]
+    H -->|Berhasil| J[POST /api/places/report]
+    J --> K[Status: is_verified = false]
+    K --> L[Notifikasi: Menunggu Validasi Admin]
 ```
 
 ### C. Alur Admin Verifikasi
@@ -125,13 +138,13 @@ flowchart TD
 ```mermaid
 flowchart TD
     A([Login Admin]) --> B[Dashboard Verifikasi]
-    B --> C[Lihat Antrian Laporan]
-    C --> D[Tinjau Foto Bukti & Checklist]
-    D --> E{Keputusan}
-    E -->|Approve| F[PATCH /api/places/verify/:id\naction: approve]
-    E -->|Reject| G[PATCH /api/places/verify/:id\naction: reject]
-    F --> H[is_verified = true\nPin muncul di peta]
-    G --> I[Notifikasi ditolak ke kontributor]
+    B --> C[Lihat Antrian Laporan Masuk]
+    C --> D[Tinjau Foto Bukti dan Checklist]
+    D --> E{Keputusan Admin}
+    E -->|Approve| F[PATCH /api/places/verify/:id\nstatus_action: approve]
+    E -->|Reject| G[PATCH /api/places/verify/:id\nstatus_action: reject]
+    F --> H[is_verified = true\nTempat tampil di direktori publik]
+    G --> I[Laporan ditolak, tidak tayang]
 ```
 
 ---
@@ -139,33 +152,36 @@ flowchart TD
 ## Struktur Direktori
 
 ```
-accessmap/
-├── README.md                    ← Dokumen ini
+disacare-bandung/
+├── README.md
 ├── docs/
-│   ├── prd-frontend.md          ← PRD Frontend (Next.js)
-│   ├── prd-backend.md           ← PRD Backend (Express.js) + API Contract + SQL
-│   └── prd-mock-server.md       ← PRD Mock Server (JSON placeholders)
+│   ├── prd-frontend.md
+│   ├── prd-backend.md
+│   └── prd-mock-server.md
 │
-├── frontend/                    ← Aplikasi Next.js
+├── frontend/
 │   ├── app/
 │   │   ├── (public)/
-│   │   │   ├── page.tsx         ← Halaman Peta Utama
-│   │   │   └── place/[id]/      ← Detail Lokasi
+│   │   │   ├── page.tsx               -- Halaman utama direktori + peta
+│   │   │   └── place/[id]/page.tsx    -- Halaman detail + mini-map
 │   │   ├── (auth)/
-│   │   │   ├── login/
-│   │   │   └── register/
-│   │   ├── contribute/          ← Form Kontribusi (protected)
-│   │   └── admin/               ← Panel Admin (protected)
+│   │   │   ├── login/page.tsx
+│   │   │   └── register/page.tsx
+│   │   ├── contribute/page.tsx        -- Form kontribusi (protected)
+│   │   └── admin/
+│   │       ├── page.tsx               -- Dashboard verifikasi (protected)
+│   │       └── verify/[id]/page.tsx
 │   ├── components/
-│   │   ├── map/                 ← Komponen Leaflet.js
-│   │   ├── ui/                  ← Reusable UI Components
-│   │   └── forms/               ← Form Components
+│   │   ├── map/                       -- Komponen Leaflet.js
+│   │   ├── accessibility/             -- TTS, High Contrast, Font Resizer
+│   │   ├── ui/                        -- Reusable UI
+│   │   └── forms/
 │   ├── lib/
-│   │   ├── api.ts               ← API Client
-│   │   └── auth.ts              ← Auth Helpers
+│   │   ├── api.ts
+│   │   └── auth.ts
 │   └── public/
 │
-├── backend/                     ← Server Node.js + Express
+├── backend/
 │   ├── src/
 │   │   ├── routes/
 │   │   │   ├── places.routes.js
@@ -180,15 +196,14 @@ accessmap/
 │   │   │   ├── auth.service.js
 │   │   │   └── scoring.service.js
 │   │   ├── middlewares/
-│   │   │   ├── auth.middleware.js  ← JWT Verification
-│   │   │   └── upload.middleware.js ← Multer Config
-│   │   ├── models/              ← Query definitions
+│   │   │   ├── auth.middleware.js
+│   │   │   └── upload.middleware.js
 │   │   └── config/
-│   │       └── db.js
-│   ├── uploads/                 ← Foto bukti fisik
+│   │       ├── db.js
+│   │       └── schema.sql
 │   └── app.js
 │
-└── mock-server/                 ← Mock API (json-server / msw)
+└── mock-server/
     ├── db.json
     └── routes.json
 ```
@@ -199,108 +214,95 @@ accessmap/
 
 | Layer | Teknologi | Keterangan |
 |---|---|---|
-| **Frontend** | Next.js 14 (App Router) | React framework dengan SSR/SSG |
-| **UI Components** | Tailwind CSS + shadcn/ui | Styling & komponen siap pakai |
-| **Peta** | Leaflet.js + OpenStreetMap | Peta interaktif gratis, ringan |
-| **Backend** | Node.js + Express.js | REST API server |
-| **Database** | MySQL | Relational database |
-| **Query Builder** | mysql2 (raw query) | Koneksi DB langsung tanpa ORM |
-| **Auth** | JWT (jsonwebtoken) | Autentikasi stateless |
-| **File Upload** | Multer | Middleware upload foto |
-| **Mock Server** | json-server | Placeholder API development |
-| **Dev Tools** | Nodemon, ESLint, Prettier | Developer experience |
+| Frontend Framework | Next.js 14 (App Router) | SSR dan routing berbasis file |
+| UI Styling | Tailwind CSS | Utility-first CSS framework |
+| Peta | Leaflet.js + OpenStreetMap | Library peta ringan, gratis, client-side |
+| Backend | Node.js + Express.js | REST API server modular |
+| Database | MySQL | Relational database |
+| DB Driver | mysql2 | Koneksi MySQL tanpa ORM, query manual |
+| Autentikasi | JWT (jsonwebtoken) | Stateless auth berbasis token |
+| File Upload | Multer | Middleware penanganan foto bukti fisik |
+| Aksesibilitas | Web Speech API (browser native) | Text-to-Speech tanpa dependency tambahan |
+| Mock Server | json-server | Placeholder API untuk tahap development |
 
 ---
 
-## Peran & Hak Akses
+## Peran dan Hak Akses
 
 ```mermaid
 graph LR
     subgraph ROLES["Aktor Sistem"]
-        ADMIN["👨‍💻 Developer / Admin\nFull Privileges"]
-        CONTRIB["🎓 Kontributor\n(JWT Required)"]
-        USER["👤 Pengguna Umum\nRead-Only"]
+        ADMIN["Developer / Admin\nFull Privileges"]
+        CONTRIB["Kontributor\nJWT Required"]
+        USER["Pengguna Umum\nRead-Only"]
     end
 
-    subgraph ENDPOINTS["Endpoint Akses"]
-        E1["POST /api/places/official"]
-        E2["PATCH /api/places/verify/:id"]
-        E3["POST /api/places/contribute"]
-        E4["GET /api/places/map-stream"]
+    subgraph ENDPOINTS["Endpoint"]
+        E1["GET /api/places"]
+        E2["POST /api/places/report"]
+        E3["PATCH /api/places/verify/:id"]
+        E4["POST /api/auth/register"]
         E5["POST /api/auth/login"]
-        E6["POST /api/auth/register"]
     end
 
-    ADMIN --> E1
-    ADMIN --> E2
-    ADMIN --> E4
-    CONTRIB --> E3
-    CONTRIB --> E4
-    USER --> E4
-    USER --> E5
-    USER --> E6
+    ADMIN --> E1 & E2 & E3
+    CONTRIB --> E1 & E2
+    USER --> E1 & E4 & E5
 ```
 
-| Role | Deskripsi | Akses |
+| Role | Tanggung Jawab | Hak Akses |
 |---|---|---|
-| **Developer/Admin** | Memasukkan data resmi, memvalidasi laporan | Full (semua endpoint) |
-| **Kontributor** | Mahasiswa/warga yang melapor via akun | Terbatas (kontribusi + baca) |
-| **Pengguna Umum** | Penyandang disabilitas / masyarakat umum | Read-Only (tanpa login) |
+| Developer / Admin | Input data resmi, validasi laporan foto | Full (semua endpoint) |
+| Kontributor | Laporan tempat baru + foto bukti | Baca + kirim laporan (JWT) |
+| Pengguna Umum | Cari tempat, baca rapor, gunakan fitur TTS | Read-Only, tanpa login |
 
 ---
 
 ## Fitur Utama
 
-### 1. 🗺️ Peta Interaktif & Filter Status
-Menampilkan semua titik lokasi dengan penanda warna berbeda:
-- 🔵 **Biru** — Data resmi dari Developer (terverifikasi)
-- 🟢 **Hijau** — Kontribusi komunitas terverifikasi
-- 🟡 **Kuning** — Kontribusi komunitas, menunggu verifikasi
+**1. Direktori Tempat + Mini-Map**
+Pencarian dan filter tempat di Bandung berdasarkan kata kunci atau kategori (mall, kampus, rumah sakit, perkantoran). Setiap halaman detail tempat menyertakan mini-map Leaflet.js yang menampilkan satu titik koordinat lokasi.
 
-### 2. 📋 Rapor Aksesibilitas
-Setiap lokasi memiliki rapor persentase yang dihitung dari checklist fasilitas:
-- Ramp kursi roda
-- Toilet ramah disabilitas
-- Jalur tunanetra (guiding block)
-- Area parkir khusus
-- Pintu otomatis / lebar
-- Lift / akses vertikal
+**2. Rapor Aksesibilitas**
+Setiap tempat memiliki persentase rapor yang dikalkulasi dari checklist fasilitas: ramp kursi roda, toilet ramah disabilitas, jalur guiding block, parkir khusus, pintu lebar/otomatis, dan akses lift.
 
-### 3. 📤 Form Kontribusi (Kontributor)
-Kontributor dapat menambahkan lokasi baru dengan:
-- Input koordinat atau pin di peta
-- Checklist fasilitas yang tersedia
-- Upload foto bukti fisik (wajib)
+**3. Fitur Aksesibilitas UI**
+Dirancang untuk dapat diakses langsung oleh penyandang disabilitas:
+- Text-to-Speech menggunakan Web Speech API untuk membacakan deskripsi tempat
+- High Contrast Mode (tampilan hitam-kuning) untuk pengguna low vision
+- Font Resizer untuk memperbesar ukuran teks
 
-### 4. ✅ Panel Verifikasi (Admin)
-Admin dapat meninjau dan menyetujui/menolak laporan kontributor berdasarkan foto bukti fisik yang diunggah.
+**4. Form Kontribusi Laporan**
+Kontributor dapat mendaftarkan tempat baru dengan mengisi nama, koordinat, kategori, checklist fasilitas, dan foto bukti fisik (wajib).
 
-### 5. 🔐 Autentikasi JWT
-Sistem keamanan berlapis menggunakan JSON Web Token untuk memisahkan hak akses antar role pengguna.
+**5. Panel Verifikasi Admin**
+Admin meninjau foto bukti yang diunggah dan memutuskan approve atau reject. Hanya tempat yang disetujui yang tampil di direktori publik.
 
 ---
 
 ## Cara Menjalankan
 
 ### Prasyarat
+
 - Node.js >= 18.x
 - MySQL >= 8.x
-- npm atau yarn
+- npm
 
-### 1. Clone & Install
+### Langkah Instalasi
 
 ```bash
-git clone https://github.com/your-org/accessmap.git
-cd accessmap
+# 1. Clone repository
+git clone https://github.com/your-org/disacare-bandung.git
+cd disacare-bandung
 
-# Install backend dependencies
+# 2. Install dependensi backend
 cd backend && npm install
 
-# Install frontend dependencies
+# 3. Install dependensi frontend
 cd ../frontend && npm install
 ```
 
-### 2. Setup Environment
+### Konfigurasi Environment
 
 ```bash
 # backend/.env
@@ -308,7 +310,7 @@ DB_HOST=localhost
 DB_PORT=3306
 DB_USER=root
 DB_PASSWORD=yourpassword
-DB_NAME=accessmap_db
+DB_NAME=disacare_db
 JWT_SECRET=your_super_secret_key
 JWT_EXPIRES_IN=7d
 PORT=5000
@@ -320,27 +322,27 @@ NEXT_PUBLIC_MAP_CENTER_LAT=-6.914744
 NEXT_PUBLIC_MAP_CENTER_LNG=107.609810
 ```
 
-### 3. Setup Database
+### Inisialisasi Database
 
 ```bash
 cd backend
 mysql -u root -p < src/config/schema.sql
 ```
 
-### 4. Jalankan Server
+### Menjalankan Aplikasi
 
 ```bash
-# Terminal 1 — Backend
+# Terminal 1: Backend API
 cd backend && npm run dev
 
-# Terminal 2 — Frontend
+# Terminal 2: Frontend
 cd frontend && npm run dev
 
-# Terminal 3 — Mock Server (opsional, untuk development)
+# Terminal 3 (opsional): Mock Server untuk development
 cd mock-server && npx json-server db.json --port 3001
 ```
 
-### 5. Akses Aplikasi
+### URL Akses
 
 | Service | URL |
 |---|---|
@@ -350,29 +352,21 @@ cd mock-server && npx json-server db.json --port 3001
 
 ---
 
+## Batasan Scope
+
+DisaCare **tidak** menyediakan navigasi rute jalan (turn-by-turn navigation). Fokus aplikasi adalah sebagai direktori informasi kelayakan fasilitas di lokasi tujuan, bukan penunjuk arah.
+
+---
+
 ## Dokumentasi Lanjutan
 
 | Dokumen | Deskripsi |
 |---|---|
-| [`docs/prd-frontend.md`](./docs/prd-frontend.md) | PRD lengkap Frontend: komponen, halaman, state management, workflow UI |
-| [`docs/prd-backend.md`](./docs/prd-backend.md) | PRD lengkap Backend: API Contract, SQL schema, service logic, middleware |
-| [`docs/prd-mock-server.md`](./docs/prd-mock-server.md) | PRD Mock Server: struktur data JSON, endpoint simulasi |
+| `docs/prd-frontend.md` | PRD Frontend: halaman, komponen, state management, aksesibilitas UI |
+| `docs/prd-backend.md` | PRD Backend: API contract lengkap, SQL schema, service logic |
+| `docs/prd-mock-server.md` | PRD Mock Server: struktur db.json, endpoint simulasi |
 
 ---
 
-## Batasan Scope
-
-> ⚠️ AccessMap **bukan** aplikasi navigasi rute seperti Google Maps.
-
-Fokus aplikasi ini hanya pada:
-- ✅ Pemetaan & visualisasi lokasi
-- ✅ Penilaian & rapor aksesibilitas
-- ✅ Validasi foto bukti fisik
-- ❌ Navigasi turn-by-turn
-- ❌ Real-time traffic
-- ❌ Pemesanan transportasi
-
----
-
-*AccessMap — Tugas Besar Mata Kuliah Literasi Manusia & Teknologi*  
-*Stack: Next.js · Express.js · MySQL · Leaflet.js*
+*DisaCare Bandung — Tugas Besar Mata Kuliah Literasi Manusia dan Teknologi*
+*Tim: Affifah, Alifya, Al Yasmin, Zahra*
