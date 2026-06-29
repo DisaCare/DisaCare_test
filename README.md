@@ -88,7 +88,7 @@ graph TD
 
     UI --> AccWidget
     UI --> MiniMap
-    UI -->|API Requests (JSON/Multipart)| Router
+    UI -->|API Requests JSON/Multipart| Router
 
     %% Router to Controller Mapping
     Router -->|GET /places| PlaceCtrl
@@ -118,11 +118,11 @@ Alur berikut memetakan bagaimana data laporan dari kontributor diproses, divalid
 ```mermaid
 sequenceDiagram
     autonumber
-    actor K as Kontributor (User)
-    participant F as Frontend (Next.js)
-    participant B as Backend (Golang API)
-    participant DB as Database (SQLite/MySQL)
-    actor A as Admin (Developer)
+    actor K as Kontributor
+    participant F as Frontend
+    participant B as Backend
+    participant DB as Database
+    actor A as Admin
 
     K->>F: Isi Form Laporan & Unggah Foto Bukti Fisik
     F->>F: Validasi Client-Side<br/>(Ukuran maks 5MB, format JPG/PNG)
