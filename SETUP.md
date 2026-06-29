@@ -108,5 +108,3 @@ cd mock-server && npm install
 - Setiap service perlu **terminal terpisah**
 - Frontend butuh backend online untuk fitur login/contribute
 - Mock server optional (untuk testing tanpa backend)
-
-Sekarang siap ngoding! 💪

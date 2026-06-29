@@ -9,9 +9,9 @@ Sebuah sistem informasi berbasis peta (Map-Based Information System) dengan pend
 ## Daftar Isi
 
 - [Deskripsi Proyek](#1-deskripsi-proyek)
-- [Aktor dan Hak Akses](#2-aktor-dan-hak-akses-role-matrix)
+- [Aktor dan Hak Akses (Role Matrix)](#2-aktor-dan-hak-akses-role-matrix)
 - [Arsitektur Sistem](#3-arsitektur-sistem)
-- [Alur Kerja Kontribusi](#4-alur-kerja-kontribusi-tempat-workflow-ipo)
+- [Alur Kerja Kontribusi Tempat (Workflow IPO)](#4-alur-kerja-kontribusi-tempat-workflow-ipo)
 - [Teknologi yang Digunakan](#5-teknologi-yang-digunakan)
 - [Aturan Teknis Proyek](#6-aturan-teknis-proyek)
 - [Struktur Direktori](#7-struktur-direktori)
@@ -22,7 +22,7 @@ Sebuah sistem informasi berbasis peta (Map-Based Information System) dengan pend
 
 ## 1. Deskripsi Proyek
 
-DisaCare Bandung dirancang untuk membantu penyandang disabilitas (fisik, netra, rungu, dan lainnya) dalam menemukan dan menilai aksesibilitas fasilitas publik di Kota Bandung. Proyek ini menggunakan arsitektur modern berbasis Golang pada sisi backend, basis data relasional SQL (MySQL/PostgreSQL), serta antarmuka web interaktif berbasis Next.js (React.js) dan Leaflet.js untuk performa yang optimal tanpa ketergantungan pada API berbayar.
+DisaCare Bandung dirancang untuk membantu penyandang disabilitas (fisik, netra, rungu, dan lainnya) dalam menemukan dan menilai aksesibilitas fasilitas publik di Kota Bandung. Proyek ini menggunakan arsitektur modern berbasis Golang pada sisi backend, basis data relasional SQL (SQLite secara bawaan untuk pengembangan, serta dukungan MySQL), serta antarmuka web interaktif berbasis Next.js (React.js) dan Leaflet.js untuk performa yang optimal tanpa ketergantungan pada API berbayar.
 
 **Fitur Kunci**
 
@@ -47,61 +47,73 @@ Sistem ini mengamankan dan mengontrol akses data dengan membaginya ke dalam tiga
 
 ## 3. Arsitektur Sistem
 
-Desain arsitektur berikut menggambarkan pemisahan tugas yang jelas (Separation of Concerns) antara antarmuka pengguna, gerbang keamanan API (middleware), mesin pemroses logika (Golang Engine), hingga penyimpanan database relasional.
+Desain arsitektur berikut menggambarkan pemisahan tugas yang jelas (*Separation of Concerns*) antara antarmuka pengguna, gerbang keamanan API (middleware), mesin pemroses logika (Golang Engine), hingga penyimpanan basis data relasional dan sistem berkas.
 
 ```mermaid
 graph TD
-    Admin["System Admin / Dev"]
-    Contributor["Kontributor Warga"]
-    EndUser["Pengguna Disabilitas / Umum"]
+    %% Styling Definitions
+    classDef client fill:#ebf5ff,stroke:#2563eb,stroke-width:2px,color:#1e3a8a;
+    classDef server fill:#f0fdf4,stroke:#16a34a,stroke-width:2px,color:#14532d;
+    classDef storage fill:#fff7ed,stroke:#ea580c,stroke-width:2px,color:#7c2d12;
+    classDef actor fill:#faf5ff,stroke:#9333ea,stroke-width:2px,color:#581c87;
 
-    subgraph Frontend["Aplikasi Client - Next.js (React.js & Tailwind CSS)"]
-        UI["Portal Utama DisaCare (App Router)"]
-        AccWidget["Widget Aksesibilitas: TTS / High-Contrast / Font Resizer"]
-        MiniMap["Komponen Peta Mini (Leaflet.js)"]
+    Admin(["👨‍💼 Admin / Dev"])
+    Contributor(["✍️ Kontributor Warga"])
+    EndUser(["♿ Pengguna Umum / Disabilitas"])
+
+    subgraph Frontend["Aplikasi Client - Next.js 14 (App Router)"]
+        UI["🖥️ Portal Utama DisaCare"]
+        AccWidget["♿ Widget Aksesibilitas: TTS / Contrast / Resizer"]
+        MiniMap["🗺️ Peta Mini (Leaflet.js & OpenStreetMap)"]
     end
 
-    subgraph Backend["API Server - Golang Engine (Gin Framework)"]
-        Router["Gin Router / Engine"]
-        AuthMD["Middleware: JWT Auth & Role Check"]
-        UploadMD["Middleware: File Upload Validator"]
-        PlaceCtrl["Controller: CRUD Tempat & Laporan"]
-        VerifyCtrl["Controller: Moderasi & Verifikasi"]
-        PlaceSvc["Service: Logika Bisnis & Query"]
-        ScoreSvc["Service: Scoring Aksesibilitas"]
+    subgraph Backend["API Server - Golang (Gin Framework)"]
+        Router["🚀 Gin Router / Engine"]
+        AuthMD["🔒 Middleware: JWT Auth & Role Check"]
+        UploadMD["📁 Middleware: File Upload Validator"]
+        PlaceCtrl["🎮 Controller: CRUD Tempat & Laporan"]
+        VerifyCtrl["🎮 Controller: Moderasi Admin"]
+        PlaceSvc["🛠️ Service: Logika Bisnis & Query"]
+        ScoreSvc["🧮 Service: Scoring Aksesibilitas"]
     end
 
     subgraph Storage["Storage Engine"]
-        DB[("MySQL / PostgreSQL Database")]
-        FS["File System (Uploads/Photos)"]
+        DB[("💾 SQLite / MySQL Database")]
+        FS["📂 File System (uploads/ folder)"]
     end
 
-    Admin -->|Kelola & Verifikasi| UI
-    Contributor -->|Input Tempat & Upload Foto| UI
-    EndUser -->|Cari & Dengarkan Info| UI
+    Admin -->|Kelola & Moderasi| UI
+    Contributor -->|Input Laporan & Upload Foto| UI
+    EndUser -->|Cari & Jelajahi Peta| UI
 
     UI --> AccWidget
     UI --> MiniMap
     UI -->|API Requests (JSON/Multipart)| Router
 
-    Router --> AuthMD
-    Router --> UploadMD
-    AuthMD --> PlaceCtrl
-    AuthMD --> VerifyCtrl
+    %% Router to Controller Mapping
+    Router -->|GET /places| PlaceCtrl
+    Router -->|Auth & Upload Routes| AuthMD
+    AuthMD -->|POST /places/report| UploadMD
     UploadMD --> PlaceCtrl
+    AuthMD -->|PATCH /places/verify/:id| VerifyCtrl
 
     PlaceCtrl --> PlaceSvc
     VerifyCtrl --> PlaceSvc
     PlaceSvc --> ScoreSvc
     PlaceSvc --> DB
-    UploadMD --> FS
+    PlaceCtrl -->|Simpan Foto Bukti| FS
+
+    class Admin,Contributor,EndUser actor;
+    class UI,AccWidget,MiniMap client;
+    class Router,AuthMD,UploadMD,PlaceCtrl,VerifyCtrl,PlaceSvc,ScoreSvc server;
+    class DB,FS storage;
 ```
 
 ---
 
 ## 4. Alur Kerja Kontribusi Tempat (Workflow IPO)
 
-Alur berikut memetakan bagaimana data laporan dari pengguna diproses, divalidasi, dan disetujui hingga akhirnya dapat diakses oleh publik secara aman.
+Alur berikut memetakan bagaimana data laporan dari kontributor diproses, divalidasi, disimpan, hingga melalui alur moderasi admin (persetujuan atau penolakan) sebelum ditayangkan secara publik.
 
 ```mermaid
 sequenceDiagram
@@ -109,31 +121,45 @@ sequenceDiagram
     actor K as Kontributor (User)
     participant F as Frontend (Next.js)
     participant B as Backend (Golang API)
-    participant D as Database (SQL)
+    participant DB as Database (SQLite/MySQL)
     actor A as Admin (Developer)
 
-    K->>F: Masuk Menu "Laporkan Fasilitas" (Input Form & Upload Foto Bukti)
-    F->>F: Validasi Client-side (Format foto & ukuran maks 5MB)
-    F->>B: POST /api/places/report (FormData, JWT Auth Header)
-    B->>B: Validasi JWT & Cek Payload (Middleware)
-    B->>B: Simpan File Foto ke uploads/
-    B->>D: INSERT INTO places (status='user_contributed', is_verified=false)
-    D-->>B: DB Success (Place UUID)
-    B-->>F: Response 201 Created (Menunggu Verifikasi)
-    F-->>K: Tampilkan Pesan "Laporan terkirim! Menunggu verifikasi admin."
+    K->>F: Isi Form Laporan & Unggah Foto Bukti Fisik
+    F->>F: Validasi Client-Side<br/>(Ukuran maks 5MB, format JPG/PNG)
+    F->>B: POST /api/places/report (FormData + JWT Token)
+    Note over B: Middleware: Validasi JWT Auth<br/>& Cek Ekstensi Berkas
+    B->>B: Simpan berkas foto ke folder uploads/
+    B->>DB: Simpan data tempat (is_verified = 0),<br/>checklist, & foto (Dalam 1 Transaksi SQL)
+    DB-->>B: Transaksi Berhasil (Place ID generated)
+    B-->>F: Response 201 Created (Status Pending)
+    F-->>K: Tampilkan Notifikasi "Laporan Menunggu Moderasi Admin"
 
-    Note over B,A: Proses Moderasi oleh Admin
+    Note over F,A: Alur Verifikasi & Moderasi oleh Admin
     A->>F: Buka Dashboard Admin (/admin)
-    F->>B: GET /api/places/pending (JWT Admin Header)
-    B->>D: SELECT * FROM places WHERE is_verified=false
-    D-->>B: Return data list pending
-    B-->>F: Response 200 OK (Data list pending)
-    A->>F: Klik tombol "Approve"
-    F->>B: PATCH /api/places/verify/:id (body: status_action='approve', JWT Admin)
-    B->>D: UPDATE places SET is_verified=true WHERE id=:id
-    D-->>B: DB Success
-    B-->>F: Response 200 OK (Status Updated)
-    F-->>A: Tampilkan Notifikasi "Laporan Berhasil Diverifikasi dan Ditayangkan"
+    F->>B: GET /api/places/pending (JWT Admin Token)
+    B->>DB: Query tempat pending (is_verified = 0)
+    DB-->>B: Hasil Query Tempat Pending
+    B-->>F: Response 200 OK (Daftar Laporan Pending)
+    F-->>A: Tampilkan Daftar Laporan di UI Moderasi
+
+    alt Admin Menyetujui (Approve)
+        A->>F: Klik Tombol "Approve"
+        F->>B: PATCH /api/places/verify/:id (status_action = "approve" + JWT Admin)
+        B->>DB: UPDATE places SET is_verified = 1 WHERE id = :id
+        DB-->>B: DB Success
+        B-->>F: Response 200 OK (status = "updated", current_state = "approved")
+        F-->>A: Tampilkan Notifikasi "Laporan Diterbitkan ke Publik"
+    else Admin Menolak (Reject)
+        A->>F: Klik Tombol "Reject"
+        F->>B: PATCH /api/places/verify/:id (status_action = "reject" + JWT Admin)
+        B->>DB: SELECT file_path FROM photo_proofs WHERE place_id = :id
+        DB-->>B: Return file path
+        B->>DB: DELETE FROM places WHERE id = :id (Cascades to checklist & photos)
+        DB-->>B: DB Success
+        B->>B: Hapus file foto dari file system (uploads/)
+        B-->>F: Response 200 OK (status = "updated", current_state = "rejected")
+        F-->>A: Tampilkan Notifikasi "Laporan Ditolak & Data Dihapus"
+    end
 ```
 
 ---
@@ -163,7 +189,8 @@ Aplikasi ini dibangun menggunakan tumpukan teknologi berikut demi menjamin perfo
 
 | Teknologi | Peran |
 |---|---|
-| MySQL / PostgreSQL | Skema relasional terstruktur |
+| SQLite | Basis data relasional bawaan (sangat ringan untuk pengembangan lokal) |
+| MySQL | Dukungan basis data relasional skala produksi |
 
 ---
 
@@ -200,7 +227,9 @@ disacare-bandung/
 │   ├── go.mod
 │   ├── go.sum
 │   ├── config/
-│   │   └── database.go               -- Koneksi MySQL/PostgreSQL
+│   │   ├── database.go               -- Koneksi SQLite/MySQL
+│   │   ├── schema.sql                -- Skema DDL Database MySQL
+│   │   └── seeder.go                 -- Inisialisasi skema & data demo SQLite
 │   ├── middleware/
 │   │   ├── auth.go                   -- JWT verification middleware
 │   │   └── upload.go                 -- File upload validation
@@ -262,17 +291,29 @@ disacare-bandung/
    ```bash
    cd backend
    ```
-2. Setup basis data relasional (MySQL/PostgreSQL) dan jalankan inisialisasi tabel (skema SQL terdapat di berkas PRD backend).
-3. Salin berkas environment dan konfigurasikan:
+2. Salin berkas environment dan konfigurasikan (secara bawaan berkas `.env` sudah terkonfigurasi menggunakan SQLite):
    ```bash
-   cp .env.example .env
-   # Edit berkas .env dengan konfigurasi database & JWT secret Anda
+   # Di Linux/macOS:
+   cp .env.example .env (jika belum ada)
+   
+   # Di Windows (PowerShell):
+   Copy-Item .env.example .env (jika belum ada)
    ```
-4. Instal dependensi dan jalankan server Go:
+   *Catatan: Repositori lokal ini sudah menyediakan berkas `.env` bawaan yang siap pakai menggunakan SQLite (`disacare.db`).*
+3. Instal dependensi dan jalankan server Go:
    ```bash
    go mod tidy
    go run main.go
    ```
+   *Saat pertama kali dijalankan, sistem akan otomatis membuat berkas database SQLite `disacare.db`, menginisialisasi tabel-tabel yang diperlukan, dan melakukan seeding data demo.*
+
+4. **Kredensial Akun Demo (Default Seed)**:
+   - **Akun Admin**:
+     - Email: `admin@disacare.id`
+     - Password: `adminpassword123`
+   - **Akun Kontributor**:
+     - Email: `contributor@disacare.id`
+     - Password: `contributorpassword123`
 
 ### B. Frontend Server
 
@@ -308,10 +349,10 @@ disacare-bandung/
 
 | Nama | Peran |
 |---|---|
-| Affifah | ... |
-| Alifya | ... |
-| Al Yasmin | ... |
-| Zahra | ... |
+| **Affifah** | Frontend Developer & UI/UX Specialist |
+| **Alifya** | Fullstack Developer & Technical Lead |
+| **Al Yasmin** | Frontend Developer & Accessibility Specialist (WCAG) |
+| **Zahra** | Backend Developer & Database Administrator |
 
 **Mata Kuliah**: Literasi Manusia dan Teknologi  
 **Studi Kasus**: Kota Bandung, Jawa Barat  
