@@ -1,0 +1,7 @@
+{
+  "/api/places": "/places",
+  "/api/places/:id": "/places/:id",
+  "/api/places/pending": "/pending_reports",
+  "/api/auth/login": "/auth/0",
+  "/api/auth/register": "/users"
+}

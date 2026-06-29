@@ -1,35 +1,310 @@
 # DisaCare Bandung
 
-Platform portal informasi dan direktori spasial aksesibilitas fasilitas publik di Kota Bandung bagi penyandang disabilitas.
+Portal Informasi Aksesibilitas Spasial Ramah Disabilitas Kota Bandung
+
+Sebuah sistem informasi berbasis peta (Map-Based Information System) dengan pendekatan Hybrid Data Sourcing dan standar aksesibilitas inklusif (WCAG) untuk memetakan fasilitas publik ramah disabilitas di Bandung.
 
 ---
 
 ## Daftar Isi
 
-- [Gambaran Umum](#gambaran-umum)
-- [Arsitektur Sistem](#arsitektur-sistem)
-- [Workflow Aplikasi](#workflow-aplikasi)
-- [Struktur Direktori](#struktur-direktori)
-- [Tech Stack](#tech-stack)
-- [Peran dan Hak Akses](#peran-dan-hak-akses)
-- [Fitur Utama](#fitur-utama)
-- [Cara Menjalankan](#cara-menjalankan)
-- [Dokumentasi Lanjutan](#dokumentasi-lanjutan)
+- [Deskripsi Proyek](#1-deskripsi-proyek)
+- [Aktor dan Hak Akses](#2-aktor-dan-hak-akses-role-matrix)
+- [Arsitektur Sistem](#3-arsitektur-sistem)
+- [Alur Kerja Kontribusi](#4-alur-kerja-kontribusi-tempat-workflow-ipo)
+- [Teknologi yang Digunakan](#5-teknologi-yang-digunakan)
+- [Aturan Teknis Proyek](#6-aturan-teknis-proyek)
+- [Struktur Direktori](#7-struktur-direktori)
+- [Cara Menjalankan](#8-cara-menjalankan)
+- [Tim Pengembang](#9-tim-pengembang)
 
 ---
 
-## Gambaran Umum
+## 1. Deskripsi Proyek
 
-**DisaCare** adalah platform portal informasi berbasis web yang memetakan tingkat aksesibilitas fasilitas publik di wilayah Kota Bandung bagi penyandang disabilitas. Aplikasi ini menggunakan pendekatan data hibrida yang menggabungkan dua sumber data utama:
+DisaCare Bandung dirancang untuk membantu penyandang disabilitas (fisik, netra, rungu, dan lainnya) dalam menemukan dan menilai aksesibilitas fasilitas publik di Kota Bandung. Proyek ini menggunakan arsitektur modern berbasis Golang pada sisi backend, basis data relasional SQL (MySQL/PostgreSQL), serta antarmuka web interaktif berbasis Next.js (React.js) dan Leaflet.js untuk performa yang optimal tanpa ketergantungan pada API berbayar.
 
-| Sumber Data | Keterangan |
+**Fitur Kunci**
+
+- **Peta Interaktif Bebas Biaya**: Visualisasi lokasi fasilitas menggunakan Leaflet.js dan OpenStreetMap.
+- **Hybrid Data Sourcing**: Menggabungkan data primer resmi (Official Data) dengan data kontribusi komunitas (Crowdsourced Data).
+- **Sistem Validasi Bukti Fisik (Anti-Hoax)**: Kontributor wajib menyertakan foto bukti fisik yang dikurasi ketat oleh administrator sebelum diterbitkan secara publik.
+- **Web Accessibility (Ramah Inklusi)**: Penerapan standar Web Content Accessibility Guidelines (WCAG) seperti fitur pengubah kontras warna (high-contrast mode), penyesuaian ukuran font, dan pembaca teks (text-to-speech / screen reader).
+
+---
+
+## 2. Aktor dan Hak Akses (Role Matrix)
+
+Sistem ini mengamankan dan mengontrol akses data dengan membaginya ke dalam tiga tingkat otorisasi.
+
+| Peran (Role) | Hak Akses Utama | Deskripsi Logika Bisnis |
+|---|---|---|
+| **System Admin / Developer** | READ, WRITE, UPDATE, DELETE | Memiliki kontrol penuh, mengelola basis data primer, serta melakukan kurasi (approval/reject) terhadap laporan masuk dari kontributor. |
+| **Kontributor (Warga/Mahasiswa)** | READ, WRITE (Terbatas) | Pengguna terdaftar (terotentikasi via JWT) yang berhak menambahkan ulasan, melaporkan fasilitas baru, mengisi checklist penilaian, dan mengunggah foto bukti fisik. |
+| **Pengguna Umum / Disabilitas** | READ saja | Pengguna publik yang dapat mencari tempat, membaca ulasan, menggunakan peta, serta mengaktifkan fitur aksesibilitas tanpa harus melakukan registrasi atau login. |
+
+---
+
+## 3. Arsitektur Sistem
+
+Desain arsitektur berikut menggambarkan pemisahan tugas yang jelas (Separation of Concerns) antara antarmuka pengguna, gerbang keamanan API (middleware), mesin pemroses logika (Golang Engine), hingga penyimpanan database relasional.
+
+```mermaid
+graph TD
+    Admin["System Admin / Dev"]
+    Contributor["Kontributor Warga"]
+    EndUser["Pengguna Disabilitas / Umum"]
+
+    subgraph Frontend["Aplikasi Client - Next.js (React.js & Tailwind CSS)"]
+        UI["Portal Utama DisaCare (App Router)"]
+        AccWidget["Widget Aksesibilitas: TTS / High-Contrast / Font Resizer"]
+        MiniMap["Komponen Peta Mini (Leaflet.js)"]
+    end
+
+    subgraph Backend["API Server - Golang Engine (Gin Framework)"]
+        Router["Gin Router / Engine"]
+        AuthMD["Middleware: JWT Auth & Role Check"]
+        UploadMD["Middleware: File Upload Validator"]
+        PlaceCtrl["Controller: CRUD Tempat & Laporan"]
+        VerifyCtrl["Controller: Moderasi & Verifikasi"]
+        PlaceSvc["Service: Logika Bisnis & Query"]
+        ScoreSvc["Service: Scoring Aksesibilitas"]
+    end
+
+    subgraph Storage["Storage Engine"]
+        DB[("MySQL / PostgreSQL Database")]
+        FS["File System (Uploads/Photos)"]
+    end
+
+    Admin -->|Kelola & Verifikasi| UI
+    Contributor -->|Input Tempat & Upload Foto| UI
+    EndUser -->|Cari & Dengarkan Info| UI
+
+    UI --> AccWidget
+    UI --> MiniMap
+    UI -->|API Requests (JSON/Multipart)| Router
+
+    Router --> AuthMD
+    Router --> UploadMD
+    AuthMD --> PlaceCtrl
+    AuthMD --> VerifyCtrl
+    UploadMD --> PlaceCtrl
+
+    PlaceCtrl --> PlaceSvc
+    VerifyCtrl --> PlaceSvc
+    PlaceSvc --> ScoreSvc
+    PlaceSvc --> DB
+    UploadMD --> FS
+```
+
+---
+
+## 4. Alur Kerja Kontribusi Tempat (Workflow IPO)
+
+Alur berikut memetakan bagaimana data laporan dari pengguna diproses, divalidasi, dan disetujui hingga akhirnya dapat diakses oleh publik secara aman.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor K as Kontributor (User)
+    participant F as Frontend (Next.js)
+    participant B as Backend (Golang API)
+    participant D as Database (SQL)
+    actor A as Admin (Developer)
+
+    K->>F: Masuk Menu "Laporkan Fasilitas" (Input Form & Upload Foto Bukti)
+    F->>F: Validasi Client-side (Format foto & ukuran maks 5MB)
+    F->>B: POST /api/places/report (FormData, JWT Auth Header)
+    B->>B: Validasi JWT & Cek Payload (Middleware)
+    B->>B: Simpan File Foto ke uploads/
+    B->>D: INSERT INTO places (status='user_contributed', is_verified=false)
+    D-->>B: DB Success (Place UUID)
+    B-->>F: Response 201 Created (Menunggu Verifikasi)
+    F-->>K: Tampilkan Pesan "Laporan terkirim! Menunggu verifikasi admin."
+
+    Note over B,A: Proses Moderasi oleh Admin
+    A->>F: Buka Dashboard Admin (/admin)
+    F->>B: GET /api/places/pending (JWT Admin Header)
+    B->>D: SELECT * FROM places WHERE is_verified=false
+    D-->>B: Return data list pending
+    B-->>F: Response 200 OK (Data list pending)
+    A->>F: Klik tombol "Approve"
+    F->>B: PATCH /api/places/verify/:id (body: status_action='approve', JWT Admin)
+    B->>D: UPDATE places SET is_verified=true WHERE id=:id
+    D-->>B: DB Success
+    B-->>F: Response 200 OK (Status Updated)
+    F-->>A: Tampilkan Notifikasi "Laporan Berhasil Diverifikasi dan Ditayangkan"
+```
+
+---
+
+## 5. Teknologi yang Digunakan
+
+Aplikasi ini dibangun menggunakan tumpukan teknologi berikut demi menjamin performa, keamanan, dan keandalan sistem.
+
+**Antarmuka (Frontend)**
+
+| Teknologi | Peran |
 |---|---|
-| Official Data | Data terverifikasi yang dimasukkan langsung oleh Developer/Admin (contoh: Balai Kota Bandung, BIP, Gedung Sate, kampus-kampus) |
-| Crowdsourced Data | Kontribusi laporan, checklist fasilitas, dan foto bukti fisik dari mahasiswa dan warga Bandung |
+| Next.js 14 / React.js | Framework utama frontend (App Router) |
+| Tailwind CSS | Efisiensi styling dengan utility class |
+| Leaflet.js + OpenStreetMap | Sistem pemetaan gratis dan sumber terbuka |
+| Web Speech API | Fungsi Text-to-Speech bawaan peramban |
 
-Platform ini juga dirancang secara inklusif dengan fitur aksesibilitas bawaan seperti Text-to-Speech, High Contrast Mode, dan Font Resizer agar dapat diakses langsung oleh penyandang disabilitas.
+**Logika Bisnis (Backend)**
 
-**Tim Pengembang**
+| Teknologi | Peran |
+|---|---|
+| Golang (Go) | Bahasa utama backend dengan performa tinggi |
+| Gin Framework | Router HTTP dan middleware handler |
+| JWT (JSON Web Token) | Sistem otentikasi stateless |
+
+**Penyimpanan Data (Database)**
+
+| Teknologi | Peran |
+|---|---|
+| MySQL / PostgreSQL | Skema relasional terstruktur |
+
+---
+
+## 6. Aturan Teknis Proyek
+
+Untuk memenuhi standar pengembangan perangkat lunak yang baik dan aman, proyek ini menerapkan aturan-aturan berikut.
+
+**Pola IPO (Input-Proses-Output) Konsisten**
+Setiap penanganan permintaan (request handling) di backend wajib memisahkan validasi parameter (input), eksekusi logika di service layer (process), dan pengiriman data murni berformat JSON (output).
+
+**Kemandirian Finansial API**
+Tidak menggunakan platform peta berbayar yang memerlukan kunci API dengan billing setup. Seluruh peta mengandalkan integrasi OpenStreetMap.
+
+**Modul Terpisah (Clean Architecture)**
+Kode backend dilarang ditulis menumpuk dalam satu file besar. Pembagian folder wajib memisahkan berkas konfigurasi database, router, middleware, controller, model, dan database service.
+
+**Validasi Berkas**
+Pengunggahan gambar untuk bukti kontribusi wajib divalidasi ekstensi serta ukurannya pada sisi client dan server demi mencegah serangan injeksi berkas berbahaya.
+
+---
+
+## 7. Struktur Direktori
+
+```
+disacare-bandung/
+├── README.md
+├── dokumen/                          -- Dokumen PRD
+│   ├── prd-frontend.md
+│   ├── prd-backend.md
+│   └── prd-mock-server.md
+│
+├── backend/                          -- Golang service
+│   ├── main.go
+│   ├── go.mod
+│   ├── go.sum
+│   ├── config/
+│   │   └── database.go               -- Koneksi MySQL/PostgreSQL
+│   ├── middleware/
+│   │   ├── auth.go                   -- JWT verification middleware
+│   │   └── upload.go                 -- File upload validation
+│   ├── controller/
+│   │   ├── place_controller.go       -- Handler CRUD tempat
+│   │   ├── auth_controller.go        -- Handler login/register
+│   │   └── verify_controller.go      -- Handler moderasi admin
+│   ├── model/
+│   │   ├── place.go                  -- Struct model tabel places
+│   │   ├── user.go                   -- Struct model tabel users
+│   │   └── checklist.go              -- Struct model tabel checklist
+│   ├── router/
+│   │   └── router.go                 -- Definisi semua rute API
+│   ├── service/
+│   │   ├── place_service.go          -- Logika bisnis tempat
+│   │   ├── auth_service.go           -- Logika bisnis autentikasi
+│   │   └── scoring_service.go        -- Kalkulasi rapor aksesibilitas
+│   └── uploads/                      -- Direktori foto bukti fisik
+│
+├── frontend/                         -- Next.js 14 client (App Router)
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── next.config.ts
+│   ├── tsconfig.json
+│   ├── app/
+│   │   ├── layout.tsx                -- Root layout (Navbar, Footer, A11yBar)
+│   │   ├── page.tsx                  -- Beranda utama (Direktori & Peta)
+│   │   ├── (auth)/
+│   │   │   ├── login/
+│   │   │   │   └── page.tsx          -- Halaman Login
+│   │   │   └── register/
+│   │   │       └── page.tsx          -- Halaman Registrasi
+│   │   ├── place/
+│   │   │   └── [id]/
+│   │   │       └── page.tsx          -- Detail Fasilitas & TTS
+│   │   ├── contribute/
+│   │   │   └── page.tsx              -- Form Laporan (Protected)
+│   │   └── admin/
+│   │       ├── page.tsx              -- Dashboard Antrian Admin
+│   │       └── verify/
+│   │           └── [id]/
+│   │               └── page.tsx      -- Halaman Moderasi
+│   ├── components/                   -- Reusable UI Components
+│   └── lib/                          -- Client utilities (API client, context)
+│
+└── mock-server/                      -- Mock API untuk UI development
+    ├── db.json
+    ├── routes.json
+    └── package.json
+```
+
+---
+
+## 8. Cara Menjalankan
+
+### A. Backend Server
+
+1. Masuk ke direktori backend:
+   ```bash
+   cd backend
+   ```
+2. Setup basis data relasional (MySQL/PostgreSQL) dan jalankan inisialisasi tabel (skema SQL terdapat di berkas PRD backend).
+3. Salin berkas environment dan konfigurasikan:
+   ```bash
+   cp .env.example .env
+   # Edit berkas .env dengan konfigurasi database & JWT secret Anda
+   ```
+4. Instal dependensi dan jalankan server Go:
+   ```bash
+   go mod tidy
+   go run main.go
+   ```
+
+### B. Frontend Server
+
+1. Masuk ke direktori frontend:
+   ```bash
+   cd ../frontend
+   ```
+2. Instal dependensi:
+   ```bash
+   npm install
+   ```
+3. Jalankan server Next.js:
+   ```bash
+   npm run dev
+   ```
+4. Buka [http://localhost:3000](http://localhost:3000) pada peramban Anda.
+
+### C. Mock Server (Alternatif Tanpa Database)
+
+1. Masuk ke direktori mock-server:
+   ```bash
+   cd ../mock-server
+   ```
+2. Jalankan mock server:
+   ```bash
+   npm run mock
+   ```
+3. Ubah variabel `NEXT_PUBLIC_API_URL` di frontend `.env` Anda menjadi `http://localhost:3001` untuk menyambungkan antarmuka ke mock server.
+
+---
+
+## 9. Tim Pengembang
 
 | Nama | Peran |
 |---|---|
@@ -38,335 +313,9 @@ Platform ini juga dirancang secara inklusif dengan fitur aksesibilitas bawaan se
 | Al Yasmin | ... |
 | Zahra | ... |
 
-Mata Kuliah: Literasi Manusia
-Lokasi Studi Kasus: Kota Bandung, Jawa Barat
+**Mata Kuliah**: Literasi Manusia dan Teknologi  
+**Studi Kasus**: Kota Bandung, Jawa Barat  
 
 ---
 
-## Arsitektur Sistem
-
-```mermaid
-graph TB
-    subgraph CLIENT["Client Layer (Next.js + React)"]
-        FE_MAP["Halaman Peta & Direktori"]
-        FE_DETAIL["Halaman Detail Tempat + Mini-Map"]
-        FE_FORM["Form Kontribusi Laporan"]
-        FE_ADMIN["Panel Admin Verifikasi"]
-        FE_AUTH["Halaman Login / Register"]
-        FE_A11Y["Komponen Aksesibilitas\n(TTS, High Contrast, Font Resizer)"]
-    end
-
-    subgraph GATEWAY["API Gateway"]
-        JWT["JWT Middleware (Auth Guard)"]
-        RATE["Rate Limiter"]
-        VALID["Input Validator"]
-    end
-
-    subgraph BACKEND["Backend Layer (Node.js + Express)"]
-        direction TB
-        ROUTE_PLACES["Routes /api/places"]
-        ROUTE_AUTH["Routes /api/auth"]
-        ROUTE_UPLOAD["Routes /api/upload"]
-
-        CTRL_PLACES["Places Controller"]
-        CTRL_AUTH["Auth Controller"]
-        CTRL_UPLOAD["Upload Controller"]
-
-        SVC_PLACES["Places Service"]
-        SVC_AUTH["Auth Service"]
-        SVC_SCORE["Scoring Service (Kalkulasi Rapor %)"]
-    end
-
-    subgraph DB["Data Layer (MySQL)"]
-        TBL_PLACES["places"]
-        TBL_USERS["users"]
-        TBL_CHECKLISTS["accessibility_checklists"]
-        TBL_PHOTOS["photo_proofs"]
-    end
-
-    subgraph STORAGE["File Storage"]
-        UPLOAD_DIR["uploads/photos/"]
-    end
-
-    FE_MAP & FE_FORM & FE_ADMIN --> GATEWAY
-    GATEWAY --> JWT --> ROUTE_PLACES & ROUTE_AUTH & ROUTE_UPLOAD
-    ROUTE_PLACES --> CTRL_PLACES --> SVC_PLACES --> TBL_PLACES & TBL_CHECKLISTS
-    ROUTE_AUTH --> CTRL_AUTH --> SVC_AUTH --> TBL_USERS
-    ROUTE_UPLOAD --> CTRL_UPLOAD --> UPLOAD_DIR
-    SVC_PLACES --> SVC_SCORE
-    TBL_PHOTOS -.-> UPLOAD_DIR
-```
-
----
-
-## Workflow Aplikasi
-
-### A. Alur Pengguna Umum (Read-Only)
-
-```mermaid
-flowchart LR
-    A([Buka DisaCare]) --> B[Lihat Direktori & Peta]
-    B --> C{Cari / Filter Tempat}
-    C -->|Kata kunci| D[Hasil Pencarian]
-    C -->|Kategori| E[Filter: Mall / Kampus / RS]
-    D & E --> F[Pilih Tempat]
-    F --> G[Halaman Detail Tempat]
-    G --> H[Lihat Mini-Map Lokasi]
-    G --> I[Lihat Rapor Aksesibilitas]
-    G --> J[Gunakan Fitur TTS / Kontras Tinggi]
-```
-
-### B. Alur Kontributor
-
-```mermaid
-flowchart TD
-    A([Login Akun]) --> B{JWT Valid?}
-    B -->|Tidak| C[Redirect ke Login]
-    B -->|Ya| D[Buka Form Kontribusi]
-    D --> E[Isi Nama, Koordinat, Kategori]
-    E --> F[Isi Checklist Fasilitas]
-    F --> G[Upload Foto Bukti Fisik - Wajib]
-    G --> H{Validasi Input}
-    H -->|Gagal| I[Tampilkan Error]
-    H -->|Berhasil| J[POST /api/places/report]
-    J --> K[Status: is_verified = false]
-    K --> L[Notifikasi: Menunggu Validasi Admin]
-```
-
-### C. Alur Admin Verifikasi
-
-```mermaid
-flowchart TD
-    A([Login Admin]) --> B[Dashboard Verifikasi]
-    B --> C[Lihat Antrian Laporan Masuk]
-    C --> D[Tinjau Foto Bukti dan Checklist]
-    D --> E{Keputusan Admin}
-    E -->|Approve| F[PATCH /api/places/verify/:id\nstatus_action: approve]
-    E -->|Reject| G[PATCH /api/places/verify/:id\nstatus_action: reject]
-    F --> H[is_verified = true\nTempat tampil di direktori publik]
-    G --> I[Laporan ditolak, tidak tayang]
-```
-
----
-
-## Struktur Direktori
-
-```
-disacare-bandung/
-├── README.md
-├── docs/
-│   ├── prd-frontend.md
-│   ├── prd-backend.md
-│   └── prd-mock-server.md
-│
-├── frontend/
-│   ├── app/
-│   │   ├── (public)/
-│   │   │   ├── page.tsx               -- Halaman utama direktori + peta
-│   │   │   └── place/[id]/page.tsx    -- Halaman detail + mini-map
-│   │   ├── (auth)/
-│   │   │   ├── login/page.tsx
-│   │   │   └── register/page.tsx
-│   │   ├── contribute/page.tsx        -- Form kontribusi (protected)
-│   │   └── admin/
-│   │       ├── page.tsx               -- Dashboard verifikasi (protected)
-│   │       └── verify/[id]/page.tsx
-│   ├── components/
-│   │   ├── map/                       -- Komponen Leaflet.js
-│   │   ├── accessibility/             -- TTS, High Contrast, Font Resizer
-│   │   ├── ui/                        -- Reusable UI
-│   │   └── forms/
-│   ├── lib/
-│   │   ├── api.ts
-│   │   └── auth.ts
-│   └── public/
-│
-├── backend/
-│   ├── src/
-│   │   ├── routes/
-│   │   │   ├── places.routes.js
-│   │   │   ├── auth.routes.js
-│   │   │   └── upload.routes.js
-│   │   ├── controllers/
-│   │   │   ├── places.controller.js
-│   │   │   ├── auth.controller.js
-│   │   │   └── upload.controller.js
-│   │   ├── services/
-│   │   │   ├── places.service.js
-│   │   │   ├── auth.service.js
-│   │   │   └── scoring.service.js
-│   │   ├── middlewares/
-│   │   │   ├── auth.middleware.js
-│   │   │   └── upload.middleware.js
-│   │   └── config/
-│   │       ├── db.js
-│   │       └── schema.sql
-│   └── app.js
-│
-└── mock-server/
-    ├── db.json
-    └── routes.json
-```
-
----
-
-## Tech Stack
-
-| Layer | Teknologi | Keterangan |
-|---|---|---|
-| Frontend Framework | Next.js 14 (App Router) | SSR dan routing berbasis file |
-| UI Styling | Tailwind CSS | Utility-first CSS framework |
-| Peta | Leaflet.js + OpenStreetMap | Library peta ringan, gratis, client-side |
-| Backend | Node.js + Express.js | REST API server modular |
-| Database | MySQL | Relational database |
-| DB Driver | mysql2 | Koneksi MySQL tanpa ORM, query manual |
-| Autentikasi | JWT (jsonwebtoken) | Stateless auth berbasis token |
-| File Upload | Multer | Middleware penanganan foto bukti fisik |
-| Aksesibilitas | Web Speech API (browser native) | Text-to-Speech tanpa dependency tambahan |
-| Mock Server | json-server | Placeholder API untuk tahap development |
-
----
-
-## Peran dan Hak Akses
-
-```mermaid
-graph LR
-    subgraph ROLES["Aktor Sistem"]
-        ADMIN["Developer / Admin\nFull Privileges"]
-        CONTRIB["Kontributor\nJWT Required"]
-        USER["Pengguna Umum\nRead-Only"]
-    end
-
-    subgraph ENDPOINTS["Endpoint"]
-        E1["GET /api/places"]
-        E2["POST /api/places/report"]
-        E3["PATCH /api/places/verify/:id"]
-        E4["POST /api/auth/register"]
-        E5["POST /api/auth/login"]
-    end
-
-    ADMIN --> E1 & E2 & E3
-    CONTRIB --> E1 & E2
-    USER --> E1 & E4 & E5
-```
-
-| Role | Tanggung Jawab | Hak Akses |
-|---|---|---|
-| Developer / Admin | Input data resmi, validasi laporan foto | Full (semua endpoint) |
-| Kontributor | Laporan tempat baru + foto bukti | Baca + kirim laporan (JWT) |
-| Pengguna Umum | Cari tempat, baca rapor, gunakan fitur TTS | Read-Only, tanpa login |
-
----
-
-## Fitur Utama
-
-**1. Direktori Tempat + Mini-Map**
-Pencarian dan filter tempat di Bandung berdasarkan kata kunci atau kategori (mall, kampus, rumah sakit, perkantoran). Setiap halaman detail tempat menyertakan mini-map Leaflet.js yang menampilkan satu titik koordinat lokasi.
-
-**2. Rapor Aksesibilitas**
-Setiap tempat memiliki persentase rapor yang dikalkulasi dari checklist fasilitas: ramp kursi roda, toilet ramah disabilitas, jalur guiding block, parkir khusus, pintu lebar/otomatis, dan akses lift.
-
-**3. Fitur Aksesibilitas UI**
-Dirancang untuk dapat diakses langsung oleh penyandang disabilitas:
-- Text-to-Speech menggunakan Web Speech API untuk membacakan deskripsi tempat
-- High Contrast Mode (tampilan hitam-kuning) untuk pengguna low vision
-- Font Resizer untuk memperbesar ukuran teks
-
-**4. Form Kontribusi Laporan**
-Kontributor dapat mendaftarkan tempat baru dengan mengisi nama, koordinat, kategori, checklist fasilitas, dan foto bukti fisik (wajib).
-
-**5. Panel Verifikasi Admin**
-Admin meninjau foto bukti yang diunggah dan memutuskan approve atau reject. Hanya tempat yang disetujui yang tampil di direktori publik.
-
----
-
-## Cara Menjalankan
-
-### Prasyarat
-
-- Node.js >= 18.x
-- MySQL >= 8.x
-- npm
-
-### Langkah Instalasi
-
-```bash
-# 1. Clone repository
-git clone https://github.com/your-org/disacare-bandung.git
-cd disacare-bandung
-
-# 2. Install dependensi backend
-cd backend && npm install
-
-# 3. Install dependensi frontend
-cd ../frontend && npm install
-```
-
-### Konfigurasi Environment
-
-```bash
-# backend/.env
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=yourpassword
-DB_NAME=disacare_db
-JWT_SECRET=your_super_secret_key
-JWT_EXPIRES_IN=7d
-PORT=5000
-UPLOAD_PATH=./uploads
-
-# frontend/.env.local
-NEXT_PUBLIC_API_URL=http://localhost:5000
-NEXT_PUBLIC_MAP_CENTER_LAT=-6.914744
-NEXT_PUBLIC_MAP_CENTER_LNG=107.609810
-```
-
-### Inisialisasi Database
-
-```bash
-cd backend
-mysql -u root -p < src/config/schema.sql
-```
-
-### Menjalankan Aplikasi
-
-```bash
-# Terminal 1: Backend API
-cd backend && npm run dev
-
-# Terminal 2: Frontend
-cd frontend && npm run dev
-
-# Terminal 3 (opsional): Mock Server untuk development
-cd mock-server && npx json-server db.json --port 3001
-```
-
-### URL Akses
-
-| Service | URL |
-|---|---|
-| Frontend | http://localhost:3000 |
-| Backend API | http://localhost:5000 |
-| Mock Server | http://localhost:3001 |
-
----
-
-## Batasan Scope
-
-DisaCare **tidak** menyediakan navigasi rute jalan (turn-by-turn navigation). Fokus aplikasi adalah sebagai direktori informasi kelayakan fasilitas di lokasi tujuan, bukan penunjuk arah.
-
----
-
-## Dokumentasi Lanjutan
-
-| Dokumen | Deskripsi |
-|---|---|
-| `docs/prd-frontend.md` | PRD Frontend: halaman, komponen, state management, aksesibilitas UI |
-| `docs/prd-backend.md` | PRD Backend: API contract lengkap, SQL schema, service logic |
-| `docs/prd-mock-server.md` | PRD Mock Server: struktur db.json, endpoint simulasi |
-
----
-
-*DisaCare Bandung — Tugas Besar Mata Kuliah Literasi Manusia dan Teknologi*
-*Tim: Affifah, Alifya, Al Yasmin, Zahra*
+*Batasan scope: DisaCare tidak menyediakan navigasi rute jalan (turn-by-turn navigation). Fokus aplikasi adalah sebagai direktori informasi kelayakan fasilitas di lokasi tujuan, bukan penunjuk arah.*

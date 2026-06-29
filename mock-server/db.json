@@ -1,0 +1,201 @@
+{
+  "places": [
+    {
+      "id": "place-001",
+      "name": "Gedung Sate",
+      "category": "kantor_pemerintah",
+      "address": "Jl. Diponegoro No.22, Citarum, Kec. Bandung Wetan, Kota Bandung, Jawa Barat 40115",
+      "latitude": -6.9020,
+      "longitude": 107.6186,
+      "description": "Gedung bersejarah yang berfungsi sebagai Kantor Gubernur Jawa Barat. Telah dilengkapi ramp, parkir khusus, dan toilet disabilitas.",
+      "data_source": "official",
+      "is_verified": true,
+      "accessibility_score": 83.33,
+      "verified_at": "2024-01-10T08:00:00Z",
+      "primary_photo": "/mock-photos/gedung-sate.jpg",
+      "checklist": {
+        "has_ramp": true,
+        "has_disability_toilet": true,
+        "has_guiding_block": true,
+        "has_parking": true,
+        "has_wide_door": true,
+        "has_elevator": false
+      }
+    },
+    {
+      "id": "place-002",
+      "name": "Bandung Indah Plaza (BIP)",
+      "category": "mall",
+      "address": "Jl. Merdeka No.56, Braga, Kec. Sumur Bandung, Kota Bandung, Jawa Barat 40111",
+      "latitude": -6.9126,
+      "longitude": 107.6100,
+      "description": "Pusat perbelanjaan di pusat kota Bandung yang telah menyediakan fasilitas lengkap untuk penyandang disabilitas termasuk lift di setiap lantai.",
+      "data_source": "official",
+      "is_verified": true,
+      "accessibility_score": 100.0,
+      "verified_at": "2024-01-12T09:30:00Z",
+      "primary_photo": "/mock-photos/bip.jpg",
+      "checklist": {
+        "has_ramp": true,
+        "has_disability_toilet": true,
+        "has_guiding_block": true,
+        "has_parking": true,
+        "has_wide_door": true,
+        "has_elevator": true
+      }
+    },
+    {
+      "id": "place-003",
+      "name": "Universitas Pendidikan Indonesia (UPI)",
+      "category": "kampus",
+      "address": "Jl. Dr. Setiabudi No.229, Isola, Kec. Sukasari, Kota Bandung, Jawa Barat 40154",
+      "latitude": -6.8601,
+      "longitude": 107.5930,
+      "description": "Kampus utama UPI yang memiliki ramp di beberapa gedung namun masih kekurangan guiding block di beberapa area.",
+      "data_source": "official",
+      "is_verified": true,
+      "accessibility_score": 50.0,
+      "verified_at": "2024-01-15T11:00:00Z",
+      "primary_photo": "/mock-photos/upi.jpg",
+      "checklist": {
+        "has_ramp": true,
+        "has_disability_toilet": true,
+        "has_guiding_block": false,
+        "has_parking": true,
+        "has_wide_door": false,
+        "has_elevator": false
+      }
+    },
+    {
+      "id": "place-004",
+      "name": "RS Hasan Sadikin Bandung",
+      "category": "rumah_sakit",
+      "address": "Jl. Pasteur No.38, Pasteur, Kec. Sukajadi, Kota Bandung, Jawa Barat 40161",
+      "latitude": -6.8976,
+      "longitude": 107.5875,
+      "description": "Rumah sakit rujukan utama Jawa Barat dengan fasilitas aksesibilitas yang cukup lengkap.",
+      "data_source": "official",
+      "is_verified": true,
+      "accessibility_score": 83.33,
+      "verified_at": "2024-01-20T07:00:00Z",
+      "primary_photo": "/mock-photos/rshs.jpg",
+      "checklist": {
+        "has_ramp": true,
+        "has_disability_toilet": true,
+        "has_guiding_block": false,
+        "has_parking": true,
+        "has_wide_door": true,
+        "has_elevator": true
+      }
+    },
+    {
+      "id": "place-005",
+      "name": "Taman Dewi Sartika",
+      "category": "taman",
+      "address": "Jl. Otto Iskandar Dinata, Balonggede, Kec. Regol, Kota Bandung, Jawa Barat 40252",
+      "latitude": -6.9258,
+      "longitude": 107.6109,
+      "description": "Taman kota yang memiliki jalur pejalan kaki namun masih terbatas fasilitas disabilitasnya.",
+      "data_source": "user_contributed",
+      "is_verified": true,
+      "accessibility_score": 33.33,
+      "verified_at": "2024-02-05T14:00:00Z",
+      "primary_photo": "/mock-photos/taman-dewi.jpg",
+      "checklist": {
+        "has_ramp": true,
+        "has_disability_toilet": false,
+        "has_guiding_block": false,
+        "has_parking": false,
+        "has_wide_door": true,
+        "has_elevator": false
+      }
+    },
+    {
+      "id": "place-006",
+      "name": "Stasiun Bandung",
+      "category": "stasiun",
+      "address": "Jl. Stasiun Timur No.1, Kb. Jeruk, Kec. Andir, Kota Bandung, Jawa Barat 40181",
+      "latitude": -6.9131,
+      "longitude": 107.6390,
+      "description": "Stasiun kereta api utama Kota Bandung. Telah memiliki ramp dan jalur guiding block di area peron.",
+      "data_source": "official",
+      "is_verified": true,
+      "accessibility_score": 66.67,
+      "verified_at": "2024-02-10T09:00:00Z",
+      "primary_photo": "/mock-photos/stasiun-bandung.jpg",
+      "checklist": {
+        "has_ramp": true,
+        "has_disability_toilet": true,
+        "has_guiding_block": true,
+        "has_parking": false,
+        "has_wide_door": true,
+        "has_elevator": false
+      }
+    },
+    {
+      "id": "place-007-pending",
+      "name": "Kedai Kopi Semesta",
+      "category": "lainnya",
+      "address": "Jl. Trunojoyo No.10, Bandung",
+      "latitude": -6.9221,
+      "longitude": 107.6072,
+      "description": "Kedai kopi dengan pintu lebar dan tempat duduk ramah kursi roda.",
+      "data_source": "user_contributed",
+      "is_verified": false,
+      "accessibility_score": 50.0,
+      "verified_at": null,
+      "primary_photo": "/mock-photos/kedai-semesta.jpg",
+      "checklist": {
+        "has_ramp": false,
+        "has_disability_toilet": false,
+        "has_guiding_block": false,
+        "has_parking": false,
+        "has_wide_door": true,
+        "has_elevator": false
+      }
+    }
+  ],
+  "users": [
+    {
+      "id": "user-admin-001",
+      "name": "Admin DisaCare",
+      "email": "admin@disacare.id",
+      "role": "admin",
+      "created_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "user-contrib-001",
+      "name": "Budi Santoso",
+      "email": "budi@mahasiswa.id",
+      "role": "contributor",
+      "created_at": "2024-01-15T08:30:00Z"
+    },
+    {
+      "id": "user-contrib-002",
+      "name": "Siti Rahayu",
+      "email": "siti@warga.id",
+      "role": "contributor",
+      "created_at": "2024-02-01T10:00:00Z"
+    }
+  ],
+  "pending_reports": [
+    {
+      "id": "place-007-pending",
+      "name": "Kedai Kopi Semesta",
+      "category": "lainnya",
+      "address": "Jl. Trunojoyo No.10, Bandung",
+      "created_at": "2024-06-05T14:30:00Z",
+      "contributor_name": "Budi Santoso",
+      "contributor_email": "budi@mahasiswa.id",
+      "proof_photo": "/mock-photos/kedai-semesta.jpg"
+    }
+  ],
+  "auth": [
+    {
+      "id": "mock-login",
+      "email": "contributor@disacare.id",
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6InVzZXItY29udHJpYi0wMDEiLCJuYW1lIjoiQnVkaSBTYW50b3NvIiwiZW1haWwiOiJidWRpQG1haGFzaXN3YS5pZCIsInJvbGUiOiJjb250cmlidXRvciIsImlhdCI6MTcxNzY0ODAwMCwiZXhwIjo5OTk5OTk5OTk5fQ.MOCK_SIGNATURE",
+      "role": "contributor"
+    }
+  ]
+}

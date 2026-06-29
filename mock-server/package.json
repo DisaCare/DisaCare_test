@@ -1,0 +1,12 @@
+{
+  "name": "mock-server",
+  "version": "1.0.0",
+  "description": "Mock server for DisaCare Bandung",
+  "main": "db.json",
+  "scripts": {
+    "start": "json-server --watch db.json --routes routes.json --port 3001"
+  },
+  "dependencies": {
+    "json-server": "^0.17.4"
+  }
+}
