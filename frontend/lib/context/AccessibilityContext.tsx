@@ -46,7 +46,16 @@ export const AccessibilityProvider: React.FC<{ children: React.ReactNode }> = ({
 
     const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.lang = 'id-ID';
-    utterance.rate = 0.9;
+    
+    // Try to find a premium or native Indonesian voice
+    const voices = window.speechSynthesis.getVoices();
+    const idVoice = voices.find(v => v.lang.startsWith('id') || v.lang.toLowerCase().includes('indonesia'));
+    if (idVoice) {
+      utterance.voice = idVoice;
+    }
+    
+    utterance.rate = 0.95; // Natural conversational speed
+    utterance.pitch = 1.22; // Cheerful cute mascot robot persona!
     window.speechSynthesis.speak(utterance);
   };
 
@@ -55,24 +64,12 @@ export const AccessibilityProvider: React.FC<{ children: React.ReactNode }> = ({
     window.speechSynthesis.cancel();
   };
 
-  // Sync highContrast/grayscale/dyslexia/baseSize classes and style to body tag
+  // Sync dyslexia and baseSize styling directly to the body tag (safe from position: fixed issues)
   useEffect(() => {
     if (typeof document === 'undefined') return;
 
     const body = document.body;
     
-    if (highContrast) {
-      body.classList.add('high-contrast');
-    } else {
-      body.classList.remove('high-contrast');
-    }
-
-    if (grayscale) {
-      body.classList.add('grayscale-mode');
-    } else {
-      body.classList.remove('grayscale-mode');
-    }
-
     if (dyslexia) {
       body.classList.add('dyslexia-font');
     } else {
@@ -80,7 +77,7 @@ export const AccessibilityProvider: React.FC<{ children: React.ReactNode }> = ({
     }
 
     body.style.fontSize = `${baseSize}%`;
-  }, [highContrast, grayscale, dyslexia, baseSize]);
+  }, [dyslexia, baseSize]);
 
   return (
     <AccessibilityContext.Provider

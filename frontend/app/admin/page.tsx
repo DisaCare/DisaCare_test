@@ -22,8 +22,12 @@ export default function AdminDashboardPage() {
   const { user, logout, isAdmin, isLoading: authLoading } = useAuth();
   const {
     highContrast,
+    grayscale,
+    dyslexia,
     baseSize,
     toggleHighContrast,
+    toggleGrayscale,
+    toggleDyslexia,
     increaseFontSize,
     decreaseFontSize,
   } = useAccessibility();
@@ -118,15 +122,12 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div 
-      style={{ filter: highContrast ? 'contrast(1.2) brightness(1.1)' : 'none' }} 
-      className="min-h-screen flex flex-col bg-background text-slate-800"
-    >
+    <div className="min-h-screen flex flex-col bg-background text-slate-800">
       {/* TopNavBar Shell */}
       <nav className="fixed top-4 left-4 right-4 z-50 max-w-7xl mx-auto rounded-full bg-white/80 backdrop-blur-lg shadow-lg border border-slate-200/80 px-6 h-16 flex items-center justify-between transition-all duration-300">
         <div className="flex items-center gap-4">
           <Link href="/" className="flex items-center gap-2 cursor-pointer">
-            <img alt="DisaCare Logo" className="h-9 w-auto object-contain" src="/logo.png" />
+            <img alt="DisaCare Logo" className="h-14 w-auto object-contain" src="/logo.png" />
           </Link>
           <span className="bg-indigo-50 border border-indigo-100 text-indigo-650 text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
             Admin Mode
@@ -154,6 +155,18 @@ export default function AdminDashboardPage() {
           </div>
         </div>
       </nav>
+
+      {/* Localized Filter wrapper (doesn't wrap fixed Navbars, preventing disappearing bug!) */}
+      <div 
+        style={{ 
+          filter: grayscale 
+            ? 'grayscale(1)' 
+            : highContrast 
+              ? 'contrast(1.25) brightness(1.05)' 
+              : 'none' 
+        }} 
+        className="flex-grow flex flex-col"
+      >
 
       {/* SideNavBar Shell */}
       <aside className="fixed left-4 top-24 h-[calc(100vh-120px)] w-60 bg-white/80 backdrop-blur-md border border-slate-200/80 rounded-2xl shadow-md flex flex-col p-4 z-40 hidden md:flex">
@@ -318,6 +331,7 @@ export default function AdminDashboardPage() {
           </section>
         )}
       </main>
+      </div>
 
       {/* Accessibility Menu FAB */}
       {mounted && (

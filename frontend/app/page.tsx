@@ -58,6 +58,7 @@ export default function HomePage() {
 
   // Mascot state
   const [mascotTip, setMascotTip] = useState('Halo! Saya Didi. Selamat datang di Peta Aksesibilitas DisaCare. Klik robot Didi di atas untuk melihat info!');
+  const [isDidiTalking, setIsDidiTalking] = useState(false);
   
   // Carousel state
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -161,7 +162,9 @@ export default function HomePage() {
   const filters = ['Semua', 'Mall', 'Kampus', 'Rumah Sakit', 'Kantor Pemerintah', 'Taman', 'Stasiun'];
 
   const handleSpeakWelcome = () => {
+    setIsDidiTalking(true);
     speak('Selamat datang di Peta Aksesibilitas DisaCare Bandung. Silakan gunakan panel pencarian di sebelah kiri atau pilih titik lokasi pada peta di sebelah kanan untuk mendengarkan informasi detail.');
+    setTimeout(() => setIsDidiTalking(false), 9000);
   };
 
   const speakMascotTip = () => {
@@ -173,7 +176,9 @@ export default function HomePage() {
     ];
     const randomTip = tips[Math.floor(Math.random() * tips.length)];
     setMascotTip(randomTip);
+    setIsDidiTalking(true);
     speak(randomTip);
+    setTimeout(() => setIsDidiTalking(false), 6000);
   };
 
   const handleLogout = () => {
@@ -217,19 +222,19 @@ export default function HomePage() {
       <div id="toast" className="hidden">Notifikasi</div>
 
       {/* Navigation */}
-      <nav id="main-nav" className="fixed top-4 left-4 right-4 z-50 max-w-7xl mx-auto rounded-full bg-white/80 backdrop-blur-lg shadow-lg border border-slate-200/80 px-6 h-16 flex items-center justify-between transition-all duration-300">
+      <nav id="main-nav" className="fixed top-4 left-4 right-4 z-50 max-w-7xl mx-auto rounded-2xl bg-white/80 backdrop-blur-md shadow-sm border border-black/5 px-6 h-16 flex items-center justify-between transition-all duration-300">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 flex-shrink-0 cursor-pointer">
-          <img src="/logo.png" alt="DisaCare Logo" className="h-9 w-auto object-contain" />
+          <img src="/logo.png" alt="DisaCare Logo" className="h-14 w-auto object-contain" />
         </Link>
 
         {/* Desktop Menu */}
-        <div className="hidden lg:flex space-x-8 font-bold text-slate-600 text-sm">
-          <Link href="/" className="hover:text-indigo-600 transition-colors py-2">Beranda</Link>
+        <div className="hidden lg:flex space-x-8 font-semibold text-slate-500 text-sm">
+          <Link href="/" className="hover:text-primary transition-colors py-2">Beranda</Link>
           {mounted && isContributor && (
-            <Link href="/contribute" className="hover:text-indigo-600 transition-colors py-2">Bantu Lapor</Link>
+            <Link href="/contribute" className="hover:text-primary transition-colors py-2">Bantu Lapor</Link>
           )}
-          <a href="#faq-section" className="hover:text-indigo-600 transition-colors py-2">Bantuan / FAQ</a>
+          <a href="#faq-section" className="hover:text-primary transition-colors py-2">Bantuan / FAQ</a>
         </div>
 
         {/* Auth Buttons */}
@@ -239,12 +244,12 @@ export default function HomePage() {
           ) : !user ? (
             <>
               <Link href="/login">
-                <button className="text-slate-600 font-bold hover:text-slate-950 px-4 py-2 cursor-pointer text-xs uppercase tracking-wider">
+                <button className="text-slate-500 font-semibold hover:text-slate-900 px-4 py-2 cursor-pointer text-xs uppercase tracking-wider transition-colors">
                   Masuk
                 </button>
               </Link>
               <Link href="/login">
-                <button className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-full font-bold transition-all shadow-lg hover:shadow-indigo-500/20 hover:scale-105 active:scale-95 cursor-pointer text-xs uppercase tracking-wider border border-indigo-600/30">
+                <button className="ios-btn-primary px-5 py-2.5 text-xs uppercase tracking-wider cursor-pointer">
                   Gabung Sekarang
                 </button>
               </Link>
@@ -252,13 +257,13 @@ export default function HomePage() {
           ) : (
             <>
               <Link href={getDashboardUrl()}>
-                <button className="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5 rounded-full font-bold transition-all shadow-lg hover:shadow-indigo-500/20 hover:scale-105 active:scale-95 cursor-pointer text-xs uppercase tracking-wider border border-indigo-600/30">
+                <button className="ios-btn-primary px-5 py-2.5 text-xs uppercase tracking-wider cursor-pointer">
                   Dashboard {isAdmin ? 'Admin' : ''}
                 </button>
               </Link>
               <button 
                 onClick={handleLogout}
-                className="text-slate-500 font-bold hover:text-red-650 px-4 py-2 cursor-pointer text-xs uppercase tracking-wider"
+                className="text-slate-400 font-semibold hover:text-red-500 px-4 py-2 cursor-pointer text-xs uppercase tracking-wider transition-colors"
               >
                 Keluar
               </button>
@@ -267,36 +272,75 @@ export default function HomePage() {
         </div>
       </nav>
 
+      {/* Localized Filter wrapper (doesn't wrap fixed Navbar or AccessibilityMenu, preventing disappearing bug!) */}
+      <div 
+        style={{ 
+          filter: grayscale 
+            ? 'grayscale(1)' 
+            : highContrast 
+              ? 'contrast(1.25) brightness(1.05)' 
+              : 'none' 
+        }} 
+        className="flex-grow flex flex-col"
+      >
+
       {/* Hero Header Section */}
-      <header className="relative pt-32 pb-16 bg-gradient-to-b from-indigo-50/30 via-white/50 to-transparent border-b border-slate-200/60">
+      <header className="relative pt-32 pb-16 bg-gradient-to-b from-slate-200/30 to-transparent border-b border-black/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             
             {/* Left Column: Title & Carousel */}
             <div className="lg:col-span-7 space-y-8">
               <div className="space-y-4">
-                <div className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 text-[10px] font-black uppercase tracking-wider">
+                <div className="inline-flex items-center gap-2 py-1 px-3 rounded-full bg-primary/5 border border-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider">
                   Bandung Inklusif Spasial
                 </div>
-                <h1 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">
+                <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 tracking-tight leading-tight">
                   Jelajahi Kota Bandung <br/>
-                  <span className="text-primary bg-gradient-to-r from-indigo-600 to-cyan-500 bg-clip-text text-transparent">Tanpa Hambatan</span>
+                  <span className="text-primary">Tanpa Hambatan</span>
                 </h1>
-                <p className="text-slate-550 text-xs md:text-sm max-w-xl font-medium leading-relaxed">
+                <p className="text-slate-500 text-xs md:text-sm max-w-xl font-medium leading-relaxed">
                   Temukan kelayakan fasilitas penunjang disabilitas fisik di lokasi tujuan Anda secara real-time berdasarkan audit lapangan terverifikasi.
                 </p>
               </div>
 
               {/* Quick Search */}
-              <div className="relative w-full max-w-md">
-                <span className="material-symbols-outlined text-slate-400 absolute left-4 top-3.5 text-[20px]">search</span>
-                <input 
-                  type="text"
-                  placeholder="Cari mal, stasiun, taman, atau fasilitas (ramp, lift)..."
-                  className="w-full bg-white border border-slate-250 rounded-2xl pl-11 pr-4 py-3.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-500 shadow-sm font-bold text-slate-800 transition-all placeholder-slate-400"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
+              <div className="space-y-3">
+                <div className="relative w-full max-w-md">
+                  <span className="material-symbols-outlined text-slate-400 absolute left-3 top-2.5 text-[20px]">search</span>
+                  <input 
+                    type="text"
+                    placeholder="Cari tempat atau fasilitas (ramp, lift)..."
+                    className="w-full ios-search-input font-medium text-slate-800 placeholder-slate-400 transition-all pr-10"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  {searchQuery && (
+                    <button 
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 cursor-pointer flex items-center justify-center"
+                    >
+                      <span className="material-symbols-outlined text-[18px] font-bold">close</span>
+                    </button>
+                  )}
+                </div>
+                
+                {/* Search suggestion pills */}
+                <div className="flex flex-wrap gap-2 items-center text-xs font-semibold text-slate-500 select-none">
+                  <span className="text-slate-400">Pencarian Cepat:</span>
+                  {['Ramp', 'Toilet', 'Parkir', 'Lift', 'Guiding Block'].map((sug) => (
+                    <button
+                      key={sug}
+                      onClick={() => {
+                        setSearchQuery(sug);
+                        document.getElementById('explore-section')?.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                      className="bg-white hover:bg-primary/10 border border-black/5 hover:border-primary/25 hover:text-primary px-3 py-1 rounded-full cursor-pointer transition-all text-[11px] font-semibold shadow-none"
+                    >
+                      {sug}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Featured Places Carousel */}
@@ -307,36 +351,55 @@ export default function HomePage() {
                     Rekomendasi Tempat Aksesibel
                   </h3>
                   
-                  <div className="relative bg-white/80 backdrop-blur-md rounded-3xl border border-slate-200/80 p-4 shadow-lg overflow-hidden group">
+                  <div className="relative ios-card p-4 overflow-hidden group">
                     <div className="flex flex-col md:flex-row gap-4">
                       {/* Image */}
-                      <div className="w-full md:w-44 h-32 rounded-2xl overflow-hidden bg-slate-100 flex-shrink-0 relative">
+                      <div className="w-full md:w-44 h-32 rounded-xl overflow-hidden bg-slate-100 flex-shrink-0 relative">
                         <img 
                           src={places[currentSlide % places.length].image} 
                           alt={places[currentSlide % places.length].name} 
                           className="w-full h-full object-cover transition-all duration-500 transform hover:scale-105" 
                         />
-                        <div className="absolute top-2 left-2 bg-white/90 backdrop-blur px-2.5 py-0.5 rounded-full text-[9px] font-black text-indigo-650 border border-slate-100 shadow-sm capitalize">
+                        <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-md px-2.5 py-0.5 rounded-full text-[9px] font-bold text-slate-700 border border-black/5 shadow-sm capitalize">
                           {places[currentSlide % places.length].category.replace('_', ' ')}
                         </div>
                       </div>
 
                       {/* Content */}
                       <div className="flex-1 flex flex-col justify-between py-1">
-                        <div className="space-y-1.5">
+                        <div className="space-y-2">
                           <div className="flex justify-between items-start gap-2">
-                            <h4 className="font-extrabold text-slate-900 text-sm leading-snug">
+                            <h4 className="font-bold text-slate-900 text-sm leading-snug">
                               {places[currentSlide % places.length].name}
                             </h4>
-                            <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full flex items-center gap-0.5 flex-shrink-0 ${
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-0.5 flex-shrink-0 ${
                               places[currentSlide % places.length].score >= 80 
-                                ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' 
-                                : 'bg-amber-50 text-amber-600 border border-amber-100'
+                                ? 'bg-tertiary/10 text-tertiary' 
+                                : 'bg-orange-500/10 text-orange-600'
                             }`}>
                               <span className="material-symbols-outlined text-[11px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
                               {places[currentSlide % places.length].score}%
                             </span>
                           </div>
+                          
+                          {/* Visual score progress bar inside carousel card */}
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-[9px] font-bold text-slate-400">
+                              <span>Skor Kelayakan</span>
+                              <span className={places[currentSlide % places.length].score >= 80 ? 'text-tertiary' : 'text-orange-500'}>
+                                {places[currentSlide % places.length].score >= 80 ? 'Sangat Aksesibel' : 'Cukup Aksesibel'}
+                              </span>
+                            </div>
+                            <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                              <div 
+                                className={`h-full rounded-full transition-all duration-500 ${
+                                  places[currentSlide % places.length].score >= 80 ? 'bg-tertiary' : 'bg-orange-500'
+                                }`}
+                                style={{ width: `${places[currentSlide % places.length].score}%` }}
+                              />
+                            </div>
+                          </div>
+
                           <p className="text-[11px] text-slate-550 font-medium leading-relaxed line-clamp-2">
                             {places[currentSlide % places.length].address}
                           </p>
@@ -349,10 +412,10 @@ export default function HomePage() {
                               setSelectedPlaceId(places[currentSlide % places.length].id);
                               document.getElementById('explore-section')?.scrollIntoView({ behavior: 'smooth' });
                             }}
-                            className="text-[10px] font-black text-indigo-600 hover:text-indigo-700 flex items-center gap-0.5 transition-colors cursor-pointer"
+                            className="text-[10px] font-bold text-primary hover:text-primary-hover flex items-center gap-0.5 transition-colors cursor-pointer"
                           >
                             Lihat di Peta
-                            <span className="material-symbols-outlined text-[12px] font-black">arrow_forward_ios</span>
+                            <span className="material-symbols-outlined text-[12px] font-bold">arrow_forward_ios</span>
                           </button>
 
                           <div className="flex items-center gap-3">
@@ -361,8 +424,8 @@ export default function HomePage() {
                                 <button
                                   key={idx}
                                   onClick={() => setCurrentSlide(idx)}
-                                  className={`w-2 h-2 rounded-full transition-all cursor-pointer ${
-                                    currentSlide % places.length === idx ? 'bg-indigo-500 w-4' : 'bg-slate-200 hover:bg-slate-300'
+                                  className={`w-1.5 h-1.5 rounded-full transition-all cursor-pointer ${
+                                    currentSlide % places.length === idx ? 'bg-primary w-3.5' : 'bg-slate-200 hover:bg-slate-350'
                                   }`}
                                 />
                               ))}
@@ -374,7 +437,7 @@ export default function HomePage() {
                                     setCurrentSlide((prev) => (prev - 1 + places.length) % places.length);
                                   }
                                 }}
-                                className="w-6 h-6 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 flex items-center justify-center cursor-pointer transition-colors shadow-sm"
+                                className="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center cursor-pointer transition-colors shadow-none border-none"
                               >
                                 <span className="material-symbols-outlined text-[14px] font-bold text-slate-500">chevron_left</span>
                               </button>
@@ -384,7 +447,7 @@ export default function HomePage() {
                                     setCurrentSlide((prev) => (prev + 1) % places.length);
                                   }
                                 }}
-                                className="w-6 h-6 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 flex items-center justify-center cursor-pointer transition-colors shadow-sm"
+                                className="w-6 h-6 rounded-lg bg-slate-100 hover:bg-slate-200 flex items-center justify-center cursor-pointer transition-colors shadow-none border-none"
                               >
                                 <span className="material-symbols-outlined text-[14px] font-bold text-slate-500">chevron_right</span>
                               </button>
@@ -400,16 +463,16 @@ export default function HomePage() {
 
             {/* Right Column: Large Interactive Mascot Didi */}
             <div className="lg:col-span-5 flex flex-col items-center justify-center relative w-full">
-              <div className="absolute w-72 h-72 rounded-full bg-indigo-500/5 blur-3xl -z-10 animate-pulse"></div>
+              <div className="absolute w-72 h-72 rounded-full bg-primary/5 blur-3xl -z-10 animate-pulse"></div>
               
-              <div className="w-full max-w-sm bg-white/85 backdrop-blur-xl rounded-3xl border border-slate-200/80 p-6 shadow-lg relative overflow-hidden flex flex-col items-center text-center hover:border-indigo-500/30 transition-all duration-300">
+              <div className="w-full max-w-sm ios-card p-6 relative overflow-hidden flex flex-col items-center text-center hover:border-primary/20 transition-all duration-300">
                 
                 {/* Speech bubble */}
-                <div className="relative bg-indigo-600 text-white px-4 py-3 rounded-2xl mb-6 shadow-md max-w-[280px]">
+                <div className="relative bg-primary text-white px-4 py-3 rounded-2xl mb-6 shadow-sm max-w-[280px]">
                   <p className="text-[11px] font-semibold leading-relaxed">
                     {mascotTip}
                   </p>
-                  <div className="absolute bottom-[-5px] left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-indigo-600 rotate-45"></div>
+                  <div className="absolute bottom-[-5px] left-1/2 -translate-x-1/2 w-2.5 h-2.5 bg-primary rotate-45"></div>
                 </div>
 
                 {/* Didi SVG */}
@@ -429,47 +492,56 @@ export default function HomePage() {
                     <ellipse cx="50" cy="85" rx="20" ry="4" fill="#cbd5e1" opacity="0.6" />
                     
                     {/* Floating Base / Wheel */}
-                    <ellipse cx="50" cy="72" rx="16" ry="6" fill="#818cf8" />
-                    <circle cx="44" cy="74" r="3" fill="#4f46e5" />
-                    <circle cx="56" cy="74" r="3" fill="#4f46e5" />
+                    <ellipse cx="50" cy="72" rx="16" ry="6" fill="#787af6" />
+                    <circle cx="44" cy="74" r="3" fill="#007aff" />
+                    <circle cx="56" cy="74" r="3" fill="#007aff" />
                     
                     {/* Round Body/Head Unit */}
-                    <circle cx="50" cy="42" r="28" fill="#ffffff" stroke="#cbd5e1" strokeWidth="2.5" />
+                    <circle cx="50" cy="42" r="28" fill="#ffffff" stroke="#e5e5ea" strokeWidth="2" />
                     
                     {/* Face Screen */}
-                    <rect x="30" y="27" width="40" height="24" rx="10" fill="#0f172a" stroke="#cbd5e1" strokeWidth="1" />
+                    <rect x="30" y="27" width="40" height="24" rx="10" fill="#1c1c1e" stroke="#e5e5ea" strokeWidth="1" />
                     
                     {/* Expressive Winking/Blinking Eyes */}
-                    <ellipse cx="40" cy="38" rx="3.5" ry="4.5" fill="#22d3ee" className="animate-blink" />
-                    <ellipse cx="60" cy="38" rx="3.5" ry="4.5" fill="#22d3ee" className="animate-blink" />
+                    {isDidiTalking ? (
+                      <>
+                        <path d="M35 38 Q40 33 45 38" stroke="#30d158" strokeWidth="3" strokeLinecap="round" fill="none" />
+                        <path d="M55 38 Q60 33 65 38" stroke="#30d158" strokeWidth="3" strokeLinecap="round" fill="none" />
+                      </>
+                    ) : (
+                      <>
+                        <ellipse cx="40" cy="38" rx="3.5" ry="4.5" fill="#30d158" className="animate-blink" />
+                        <ellipse cx="60" cy="38" rx="3.5" ry="4.5" fill="#30d158" className="animate-blink" />
+                      </>
+                    )}
                     
                     {/* Rosy cheeks */}
-                    <circle cx="35" cy="44" r="2" fill="#f43f5e" opacity="0.8" />
-                    <circle cx="65" cy="44" r="2" fill="#f43f5e" opacity="0.8" />
+                    <circle cx="35" cy="44" r="2" fill="#ff453a" opacity="0.8" />
+                    <circle cx="65" cy="44" r="2" fill="#ff453a" opacity="0.8" />
                     
                     {/* Happy Smile */}
-                    <path d="M47 43 Q50 46 53 43" stroke="#22d3ee" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+                    <path d="M47 43 Q50 46 53 43" stroke="#30d158" strokeWidth="1.5" strokeLinecap="round" fill="none" />
                     
                     {/* Cute Ears / Side Bolts */}
-                    <rect x="18" y="36" width="4" height="12" rx="2" fill="#4f46e5" />
-                    <rect x="78" y="36" width="4" height="12" rx="2" fill="#4f46e5" />
+                    <rect x="18" y="36" width="4" height="12" rx="2" fill="#007aff" />
+                    <rect x="78" y="36" width="4" height="12" rx="2" fill="#007aff" />
                     
                     {/* Yellow Glow Antenna */}
-                    <line x1="50" y1="14" x2="50" y2="5" stroke="#4f46e5" strokeWidth="2.5" strokeLinecap="round" />
-                    <circle cx="50" cy="4" r="3.5" fill="#eab308" className="animate-pulse" />
+                    <line x1="50" y1="14" x2="50" y2="5" stroke="#007aff" strokeWidth="2.5" strokeLinecap="round" />
+                    <circle cx="50" cy="4" r="3.5" fill="#ff9500" className="animate-pulse" />
                     
                     {/* Waving Arms */}
-                    <path d="M19 46 Q10 48 14 55" stroke="#4f46e5" strokeWidth="3" strokeLinecap="round" fill="none" />
-                    <path d="M81 46 Q90 48 86 55" stroke="#4f46e5" strokeWidth="3" strokeLinecap="round" fill="none" />
+                    <path d="M19 46 Q10 48 14 55" stroke="#007aff" strokeWidth="3" strokeLinecap="round" fill="none" />
+                    <path d="M81 46 Q90 48 86 55" stroke="#007aff" strokeWidth="3" strokeLinecap="round" fill="none" />
                   </svg>
                 </div>
 
                 <div className="mt-4 space-y-1">
-                  <h4 className="font-extrabold text-xs text-slate-800 flex items-center justify-center gap-1">
+                  <h4 className="font-bold text-xs text-slate-800 flex items-center justify-center gap-1">
                     Kenalkan, Asisten Didi!
                     <span className="material-symbols-outlined text-[16px] text-amber-500 animate-wave">waving_hand</span>
                   </h4>
-                  <p className="text-[10px] text-slate-550 font-medium max-w-[240px]">
+                  <p className="text-[10px] text-slate-500 font-medium max-w-[240px]">
                     Klik robot Didi untuk mendengar tips aksesibilitas menarik di Kota Bandung.
                   </p>
                 </div>
@@ -477,14 +549,14 @@ export default function HomePage() {
                 <div className="mt-4 flex gap-2 w-full justify-center">
                   <button 
                     onClick={speakMascotTip}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-150 text-indigo-650 text-[10px] font-black transition-colors cursor-pointer"
+                    className="ios-btn-secondary px-3.5 py-1.5 text-[10px] cursor-pointer"
                   >
                     <span className="material-symbols-outlined text-[14px]">volume_up</span>
                     Dengar Tips
                   </button>
                   <button 
                     onClick={handleSpeakWelcome}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-650 text-[10px] font-black transition-colors cursor-pointer"
+                    className="bg-slate-100 hover:bg-slate-250 text-slate-600 px-3.5 py-1.5 rounded-xl text-[10px] font-semibold transition-colors cursor-pointer"
                   >
                     <span className="material-symbols-outlined text-[14px]">info</span>
                     Info Halaman
@@ -498,6 +570,30 @@ export default function HomePage() {
         </div>
       </header>
 
+      {/* Interactive Metric Stats Section */}
+      <section className="bg-white border-y border-black/[0.04] py-8 select-none">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            <div className="space-y-1">
+              <p className="text-2xl md:text-3xl font-extrabold text-primary">120+</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Fasilitas Publik</p>
+            </div>
+            <div className="space-y-1 border-l border-slate-100">
+              <p className="text-2xl md:text-3xl font-extrabold text-tertiary">98%</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Rapor Akurasi</p>
+            </div>
+            <div className="space-y-1 border-l border-slate-100">
+              <p className="text-2xl md:text-3xl font-extrabold text-amber-500">450+</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Laporan Audit</p>
+            </div>
+            <div className="space-y-1 border-l border-slate-100">
+              <p className="text-2xl md:text-3xl font-extrabold text-secondary">24/7</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Inklusivitas</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Main Map-First Split Dashboard Explorer */}
       <main id="explore-section" className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 flex flex-col lg:flex-row gap-8 min-h-[600px]">
         
@@ -509,10 +605,10 @@ export default function HomePage() {
               <button
                 key={cat}
                 onClick={() => handleCategoryClick(cat)}
-                className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer border whitespace-nowrap ${
+                className={`px-4.5 py-2 rounded-full text-xs font-semibold transition-all cursor-pointer border-none whitespace-nowrap ${
                   activeFilter === cat
-                    ? 'bg-indigo-600 text-white border-indigo-500 shadow-lg shadow-indigo-500/20'
-                    : 'bg-white hover:bg-slate-50 text-slate-600 border-slate-200'
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'bg-black/5 hover:bg-black/10 text-slate-600'
                 }`}
               >
                 {cat}
@@ -521,68 +617,97 @@ export default function HomePage() {
           </div>
 
           {/* Place List Container */}
-          <div className="flex-1 flex flex-col gap-4 overflow-y-auto max-h-[620px] pr-2 scrollbar-thin">
+          <div className="flex-1 flex flex-col gap-3.5 overflow-y-auto max-h-[620px] pr-2 scrollbar-thin">
             {isLoading ? (
               <div className="py-24 text-center space-y-4">
-                <span className="material-symbols-outlined animate-spin text-[40px] text-indigo-600">sync</span>
-                <p className="text-xs text-slate-500 font-bold">Memuat data tempat...</p>
+                <span className="material-symbols-outlined animate-spin text-[40px] text-primary">sync</span>
+                <p className="text-xs text-slate-500 font-semibold">Memuat data tempat...</p>
               </div>
             ) : error ? (
               <div className="py-16 text-center bg-white border border-slate-200 rounded-2xl space-y-4 shadow-sm">
-                <span className="material-symbols-outlined text-[48px] text-red-500">error</span>
-                <h3 className="text-sm font-bold text-slate-550">{error}</h3>
+                <span className="material-symbols-outlined text-[48px] text-error">error</span>
+                <h3 className="text-sm font-semibold text-slate-500">{error}</h3>
               </div>
             ) : places.length > 0 ? (
-              places.map((place) => (
+            places.map((place) => (
                 <div 
                   key={place.id}
                   onClick={() => setSelectedPlaceId(place.id)}
-                  className={`place-card p-5 rounded-2xl border transition-all duration-300 flex gap-4 cursor-pointer relative overflow-hidden ${
+                  className={`ios-card p-4.5 flex gap-4 cursor-pointer relative overflow-hidden transition-all duration-300 ${
                     selectedPlaceId === place.id 
-                      ? 'bg-white border-indigo-500 shadow-md ring-1 ring-indigo-500' 
-                      : 'bg-white/80 border-slate-200 hover:border-slate-350 shadow-sm'
+                      ? 'border-primary ring-1 ring-primary bg-primary/[0.02] scale-[1.01]' 
+                      : 'bg-white hover:bg-slate-50/50'
                   }`}
                 >
                   {/* Rating color stripe on left */}
-                  <div className={`absolute top-0 left-0 bottom-0 w-1.5 ${
-                    place.severity === 'good' ? 'bg-[#10B981]' : place.severity === 'medium' ? 'bg-[#F59E0B]' : 'bg-[#EF4444]'
+                  <div className={`absolute top-0 left-0 bottom-0 w-1 ${
+                    place.severity === 'good' ? 'bg-tertiary' : place.severity === 'medium' ? 'bg-amber-500' : 'bg-error'
                   }`} />
 
                   {/* Thumbnail Image */}
-                  <div className="w-24 h-24 rounded-xl overflow-hidden border border-slate-150 flex-shrink-0 bg-slate-50">
+                  <div className="w-20 h-20 rounded-xl overflow-hidden border border-black/5 flex-shrink-0 bg-slate-50 relative">
                     <img src={place.image} alt={place.name} className="w-full h-full object-cover" />
+                    {place.isVerified && (
+                      <div className="absolute bottom-1 right-1 bg-tertiary text-white p-0.5 rounded-full flex items-center justify-center shadow-md" title="Terverifikasi">
+                        <span className="material-symbols-outlined text-[10px] font-black">verified</span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Place Info details */}
-                  <div className="flex-1 flex flex-col min-w-0">
+                  <div className="flex-1 flex flex-col justify-between min-w-0">
                     <div className="flex justify-between items-start gap-1">
-                      <span className="text-[9px] font-black tracking-wide uppercase bg-indigo-50 text-indigo-650 px-2 py-0.5 rounded border border-indigo-100">
-                        {place.category.replace('_', ' ')}
-                      </span>
+                      <div className="flex items-center gap-1">
+                        <span className="text-[9px] font-bold tracking-wide uppercase bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
+                          {place.category.replace('_', ' ')}
+                        </span>
+                        <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${
+                          place.isVerified 
+                            ? 'bg-primary/5 text-primary'
+                            : 'bg-slate-100 text-slate-500'
+                        }`}>
+                          {place.isVerified ? 'Resmi' : 'Komunitas'}
+                        </span>
+                      </div>
                       <span className={`text-[10px] font-bold flex items-center gap-0.5 ${
-                        place.score >= 80 ? 'text-[#10B981]' : place.score >= 50 ? 'text-[#F59E0B]' : 'text-[#EF4444]'
+                        place.score >= 80 ? 'text-tertiary' : place.score >= 50 ? 'text-amber-600' : 'text-error'
                       }`}>
                         <span className="material-symbols-outlined text-[13px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
                         {place.score}%
                       </span>
                     </div>
 
-                    <h3 className="font-extrabold text-sm text-slate-900 mt-1.5 leading-snug truncate">
+                    <h3 className="font-bold text-sm text-slate-800 mt-1 leading-snug truncate">
                       {place.name}
                     </h3>
                     
-                    <p className="text-[11px] text-slate-550 mt-1 line-clamp-1 flex items-center gap-0.5 font-medium">
+                    {/* Visual Score Bar (Horizontal) */}
+                    <div className="w-full bg-slate-100 rounded-full h-1 mt-1 overflow-hidden">
+                      <div 
+                        className={`h-full rounded-full ${
+                          place.severity === 'good' ? 'bg-tertiary' : place.severity === 'medium' ? 'bg-amber-500' : 'bg-error'
+                        }`}
+                        style={{ width: `${place.score}%` }}
+                      />
+                    </div>
+
+                    <p className="text-[11px] text-slate-500 mt-1 line-clamp-1 flex items-center gap-0.5 font-medium">
                       <span className="material-symbols-outlined text-[12px]">location_on</span>
                       {place.address}
                     </p>
 
                     {/* Facility Chips */}
-                    <div className="flex flex-wrap gap-1 mt-3">
-                      {place.facilities.map((fac) => (
-                        <span key={fac} className="bg-slate-50 border border-slate-200/60 px-2 py-0.5 rounded text-[8px] font-extrabold text-slate-500">
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {place.facilities.slice(0, 3).map((fac) => (
+                        <span key={fac} className="bg-slate-100 px-2.5 py-0.5 rounded-full text-[8px] font-bold text-slate-500">
                           {fac}
                         </span>
                       ))}
+                      {place.facilities.length > 3 && (
+                        <span className="bg-slate-100 px-2.5 py-0.5 rounded-full text-[8px] font-bold text-slate-400">
+                          +{place.facilities.length - 3}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -590,15 +715,15 @@ export default function HomePage() {
             ) : (
               <div className="py-16 text-center bg-white border border-slate-200 rounded-2xl space-y-4 shadow-sm">
                 <span className="material-symbols-outlined text-[48px] text-slate-400">search_off</span>
-                <h3 className="text-sm font-bold text-slate-550">Hasil pencarian kosong</h3>
-                <p className="text-xs text-slate-500 max-w-xs mx-auto">Silakan coba kata kunci aksesibilitas atau kategori tempat lainnya.</p>
+                <h3 className="text-sm font-semibold text-slate-500">Hasil pencarian kosong</h3>
+                <p className="text-xs text-slate-400 max-w-xs mx-auto">Silakan coba kata kunci aksesibilitas atau kategori tempat lainnya.</p>
               </div>
             )}
           </div>
         </section>
 
         {/* Right Panel: GIS Interactive Map Visualization */}
-        <section className="w-full lg:w-7/12 bg-white rounded-3xl overflow-hidden border border-slate-200 relative shadow-sm flex flex-col h-[500px] lg:h-auto min-h-[500px]">
+        <section className="w-full lg:w-7/12 bg-white rounded-2xl overflow-hidden border border-black/5 relative shadow-sm flex flex-col h-[500px] lg:h-auto min-h-[500px]">
           {places.length > 0 ? (
             <MiniMap 
               places={places} 
@@ -615,60 +740,74 @@ export default function HomePage() {
           <button
             onClick={speakMascotTip}
             title="Klik untuk tips bantuan dari Didi!"
-            className="absolute bottom-4 right-4 bg-white text-slate-800 p-3 rounded-full shadow-md border border-slate-200 hover:scale-105 transition-all z-20 flex items-center justify-center cursor-pointer"
+            className="absolute bottom-4 right-4 bg-white text-slate-800 p-3 rounded-full shadow-sm border border-black/5 hover:scale-105 transition-all z-20 flex items-center justify-center cursor-pointer"
           >
             <span className="material-symbols-outlined text-[20px] text-amber-500">psychology_alt</span>
           </button>
 
           {/* Map Scale Legend */}
-          <div className="absolute top-4 left-4 bg-white/95 backdrop-blur p-3.5 rounded-2xl border border-slate-200 text-[10px] space-y-1.5 z-10 shadow-md">
-            <h4 className="font-extrabold text-slate-800">Keterangan Akses</h4>
+          <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md p-3.5 rounded-2xl border border-black/5 text-[10px] space-y-1.5 z-10 shadow-sm">
+            <h4 className="font-bold text-slate-800">Keterangan Akses</h4>
             <div className="flex items-center gap-1.5 font-bold">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#10B981]"></span>
-              <span className="text-slate-650">Baik (&gt;80%)</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-tertiary"></span>
+              <span className="text-slate-600">Baik (&gt;80%)</span>
             </div>
             <div className="flex items-center gap-1.5 font-bold">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]"></span>
-              <span className="text-slate-650">Cukup (50%-80%)</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+              <span className="text-slate-600">Cukup (50%-80%)</span>
             </div>
             <div className="flex items-center gap-1.5 font-bold">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#EF4444]"></span>
-              <span className="text-slate-650">Kurang (&lt;50%)</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-error"></span>
+              <span className="text-slate-600">Kurang (&lt;50%)</span>
             </div>
           </div>
 
           {/* Map Overlay Card for currently highlighted Place */}
           {selectedPlace && (
-            <div className="absolute bottom-4 left-4 w-64 bg-white/95 backdrop-blur rounded-2xl border border-slate-200/80 shadow-xl p-4 space-y-3 z-10 animate-fade-in text-slate-800">
-              <div className="flex items-start justify-between gap-1">
-                <div>
-                  <span className="bg-indigo-50 text-indigo-650 text-[8px] font-black px-2 py-0.5 rounded border border-indigo-100 uppercase tracking-wider">
-                    {selectedPlace.category.replace('_', ' ')}
-                  </span>
-                  <h4 className="text-xs font-black text-slate-900 mt-1 truncate max-w-[150px]">{selectedPlace.name}</h4>
-                </div>
-                <span className={`text-xs font-extrabold px-2 py-0.5 rounded border ${
+            <div className="absolute bottom-4 left-4 w-72 bg-white/90 backdrop-blur-md rounded-2xl border border-black/5 shadow-lg p-4 space-y-3 z-10 animate-fade-in text-slate-800">
+              {/* Place Image on top of overlay */}
+              <div className="w-full h-24 rounded-xl overflow-hidden bg-slate-100 relative border border-black/5">
+                <img src={selectedPlace.image} alt={selectedPlace.name} className="w-full h-full object-cover" />
+                <span className={`absolute top-2 right-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${
                   selectedPlace.severity === 'good' 
-                    ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' 
+                    ? 'bg-tertiary text-white' 
                     : selectedPlace.severity === 'medium' 
-                      ? 'bg-amber-50 text-amber-600 border border-amber-100' 
-                      : 'bg-rose-50 text-rose-600 border border-rose-100'
+                      ? 'bg-amber-500 text-white' 
+                      : 'bg-error text-white'
                 }`}>
-                  {selectedPlace.score}%
+                  {selectedPlace.score}% Akses
                 </span>
               </div>
-              
-              <p className="text-[10px] text-slate-500 font-medium leading-normal flex items-start gap-0.5 line-clamp-2">
-                <span className="material-symbols-outlined text-[12px] mt-0.5">location_on</span>
-                {selectedPlace.address}
-              </p>
 
+              <div className="space-y-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="bg-primary/5 text-primary text-[8px] font-bold px-2 py-0.5 rounded border border-primary/10 uppercase tracking-wider">
+                    {selectedPlace.category.replace('_', ' ')}
+                  </span>
+                </div>
+                <h4 className="text-xs font-bold text-slate-900 truncate">{selectedPlace.name}</h4>
+                <p className="text-[10px] text-slate-500 font-medium leading-normal flex items-start gap-0.5 line-clamp-1">
+                  <span className="material-symbols-outlined text-[12px] mt-0.5">location_on</span>
+                  {selectedPlace.address}
+                </p>
+              </div>
+              
               <div className="flex gap-2 pt-2 border-t border-slate-100">
-                <Link href={`/place/${selectedPlace.id}`} className="w-full">
-                  <button className="w-full bg-indigo-600 hover:bg-indigo-500 text-white py-2 rounded-xl text-xs font-bold transition-colors cursor-pointer border border-indigo-650/20">
-                    Lihat Detail Aksesibilitas
+                <Link href={`/place/${selectedPlace.id}`} className="flex-1">
+                  <button className="w-full ios-btn-primary py-2.5 text-[10px] font-bold cursor-pointer text-center">
+                    Detail
                   </button>
                 </Link>
+                <a 
+                  href={`https://maps.google.com/?q=${encodeURIComponent(selectedPlace.name + " " + selectedPlace.address)}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="flex-grow-[1.5]"
+                >
+                  <button className="w-full py-2.5 border border-primary/20 hover:border-primary text-primary bg-primary/5 hover:bg-primary/10 rounded-xl transition-all cursor-pointer text-center font-bold text-[10px]">
+                    Google Maps
+                  </button>
+                </a>
               </div>
             </div>
           )}
@@ -678,35 +817,35 @@ export default function HomePage() {
       </main>
 
       {/* Rapor & Misi Bandung Inklusif Section */}
-      <section className="py-16 bg-gradient-to-b from-transparent via-slate-50 to-slate-100/80 text-slate-800 relative overflow-hidden border-t border-slate-200">
+      <section className="py-16 bg-slate-100 text-slate-800 relative overflow-hidden border-t border-black/5">
         <div className="absolute w-96 h-96 rounded-full bg-cyan-500/5 blur-3xl -top-20 -left-20 -z-10 animate-pulse"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="flex-1 w-full max-w-2xl space-y-3">
-            <span className="text-xs font-black text-indigo-650 tracking-widest uppercase">Misi & Metodologi</span>
-            <h2 className="text-2xl md:text-3xl font-black tracking-tight leading-snug text-slate-900">
+            <span className="text-xs font-bold text-primary tracking-widest uppercase">Misi & Metodologi</span>
+            <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight leading-snug text-slate-900">
               Misi Kota Bandung Inklusif:<br />
               Skor Aksesibilitas Spasial Terverifikasi
             </h2>
-            <p className="text-slate-550 text-xs md:text-sm leading-relaxed font-medium">
+            <p className="text-slate-500 text-xs md:text-sm leading-relaxed font-medium">
               DisaCare adalah direktori publik yang menilai persentase kelayakan fisik (ramp, toilet difabel, pemandu taktil, lift) berdasarkan regulasi bangunan ramah difabel nasional, didukung dengan audit manual foto bukti lapangan dari kontributor.
             </p>
           </div>
           <div className="flex flex-shrink-0 gap-4">
             {mounted && isContributor ? (
               <Link href="/contribute">
-                <button className="bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white px-6 py-3 rounded-xl font-bold text-xs transition-all shadow-lg hover:shadow-indigo-500/20 hover:scale-105 active:scale-95 cursor-pointer border border-indigo-600/30">
+                <button className="ios-btn-primary px-6 py-3 text-xs cursor-pointer">
                   Laporkan Fasilitas Baru
                 </button>
               </Link>
             ) : (
               <Link href="/login">
-                <button className="bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white px-6 py-3 rounded-xl font-bold text-xs transition-all shadow-lg hover:shadow-indigo-500/20 hover:scale-105 active:scale-95 cursor-pointer border border-indigo-600/30">
+                <button className="ios-btn-primary px-6 py-3 text-xs cursor-pointer">
                   Gabung Kontributor
                 </button>
               </Link>
             )}
             <a href="#faq-section">
-              <button className="bg-white hover:bg-slate-50 text-slate-700 px-6 py-3 rounded-xl font-bold text-xs transition-all cursor-pointer border border-slate-300 hover:border-slate-400 hover:scale-105 active:scale-95 shadow-sm">
+              <button className="bg-white hover:bg-slate-50 text-slate-700 px-6 py-3 rounded-xl font-semibold text-xs transition-all border border-black/10 shadow-none hover:scale-105 active:scale-95 cursor-pointer">
                 Cara Kerja Penilaian
               </button>
             </a>
@@ -715,12 +854,12 @@ export default function HomePage() {
       </section>
 
       {/* Help / FAQ Section */}
-      <section id="faq-section" className="py-20 bg-gradient-to-b from-slate-100 to-slate-50 border-t border-slate-200 relative overflow-hidden">
-        <div className="absolute w-96 h-96 rounded-full bg-indigo-500/5 blur-3xl -bottom-20 -right-20 -z-10 animate-pulse"></div>
+      <section id="faq-section" className="py-20 bg-slate-50 border-t border-black/5 relative overflow-hidden">
+        <div className="absolute w-96 h-96 rounded-full bg-primary/5 blur-3xl -bottom-20 -right-20 -z-10 animate-pulse"></div>
         <div className="max-w-4xl mx-auto px-4">
           <div className="text-center mb-12 space-y-3">
-            <span className="text-xs font-black text-indigo-650 tracking-widest uppercase">Bantuan</span>
-            <h2 className="text-2xl font-black text-slate-900">
+            <span className="text-xs font-bold text-primary tracking-widest uppercase">Bantuan</span>
+            <h2 className="text-2xl font-extrabold text-slate-900">
               Pertanyaan Umum & FAQ
             </h2>
             <p className="text-slate-550 max-w-xl mx-auto text-xs font-medium">
@@ -732,18 +871,18 @@ export default function HomePage() {
             {faqs.map((faq, idx) => (
               <div 
                 key={idx}
-                className={`rounded-2xl p-5 cursor-pointer transition-all duration-300 border ${
+                className={`ios-card p-4 cursor-pointer transition-all duration-300 ${
                   activeFaq === idx 
-                    ? 'bg-white border-indigo-500 shadow-md shadow-indigo-100' 
-                    : 'bg-white/80 border-slate-200 hover:border-slate-300 hover:bg-white shadow-sm'
+                    ? 'border-primary/50 bg-white shadow-md' 
+                    : 'bg-white/80 hover:bg-white border-slate-100 shadow-none'
                 }`}
                 onClick={() => setActiveFaq(activeFaq === idx ? null : idx)}
               >
                 <div className="flex justify-between items-center">
-                  <h4 className={`text-sm font-bold transition-colors ${activeFaq === idx ? 'text-indigo-600' : 'text-slate-800'}`}>
+                  <h4 className={`text-sm font-semibold transition-colors ${activeFaq === idx ? 'text-primary' : 'text-slate-800'}`}>
                     {faq.q}
                   </h4>
-                  <span className={`material-symbols-outlined transition-colors ${activeFaq === idx ? 'text-indigo-600' : 'text-slate-550'}`}>
+                  <span className={`material-symbols-outlined transition-colors ${activeFaq === idx ? 'text-primary' : 'text-slate-450'}`}>
                     {activeFaq === idx ? 'expand_less' : 'expand_more'}
                   </span>
                 </div>
@@ -759,35 +898,35 @@ export default function HomePage() {
       </section>
 
       {/* Footer Section */}
-      <footer className="bg-white backdrop-blur-md text-slate-800 pt-16 pb-8 border-t border-slate-200">
+      <footer className="bg-white backdrop-blur-md text-slate-800 pt-16 pb-8 border-t border-black/5">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
             <div className="col-span-1 md:col-span-1 space-y-4">
               <div className="flex items-center gap-2">
                 <img src="/logo.png" alt="Logo DisaCare" className="h-9 w-auto object-contain" />
               </div>
-              <p className="text-slate-550 text-xs leading-relaxed font-medium">
+              <p className="text-slate-500 text-xs leading-relaxed font-medium">
                 Platform portal informasi dan direktori spasial aksesibilitas fasilitas publik di Kota Bandung bagi difabel.
               </p>
             </div>
 
             <div>
               <h5 className="font-bold text-xs uppercase tracking-wider mb-4 text-slate-900">Navigasi</h5>
-              <ul className="space-y-2 text-slate-550 text-xs font-medium">
-                <li><button onClick={handleSearchClick} className="hover:text-indigo-650 cursor-pointer text-left transition-colors">Direktori Tempat</button></li>
+              <ul className="space-y-2 text-slate-500 text-xs font-medium">
+                <li><button onClick={handleSearchClick} className="hover:text-primary cursor-pointer text-left transition-colors">Direktori Tempat</button></li>
                 {mounted && isContributor && (
-                  <li><Link href="/contribute" className="hover:text-indigo-650 transition-colors">Kontribusi Baru</Link></li>
+                  <li><Link href="/contribute" className="hover:text-primary transition-colors">Kontribusi Baru</Link></li>
                 )}
-                <li><a href="#faq-section" className="hover:text-indigo-650 transition-colors">Tanya Jawab (FAQ)</a></li>
+                <li><a href="#faq-section" className="hover:text-primary transition-colors">Tanya Jawab (FAQ)</a></li>
               </ul>
             </div>
 
             <div>
               <h5 className="font-bold text-xs uppercase tracking-wider mb-4 text-slate-900">Pemerintahan</h5>
-              <ul className="space-y-2 text-slate-550 text-xs font-medium">
-                <li><a href="#" className="hover:text-indigo-650 transition-colors">Pemerintah Kota Bandung</a></li>
-                <li><a href="#" className="hover:text-indigo-650 transition-colors">Dinas Sosial Kota Bandung</a></li>
-                <li><a href="#" className="hover:text-indigo-650 transition-colors">Dinas Komunikasi & Informatika</a></li>
+              <ul className="space-y-2 text-slate-500 text-xs font-medium">
+                <li><a href="#" className="hover:text-primary transition-colors">Pemerintah Kota Bandung</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Dinas Sosial Kota Bandung</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Dinas Komunikasi & Informatika</a></li>
               </ul>
             </div>
 
@@ -797,11 +936,11 @@ export default function HomePage() {
                 <input
                   type="email"
                   placeholder="Email Anda"
-                  className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs flex-1 focus:outline-none focus:ring-1 focus:ring-indigo-500 text-slate-800 placeholder-slate-400 font-medium"
+                  className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs flex-1 focus:outline-none focus:ring-1 focus:ring-primary text-slate-800 placeholder-slate-400 font-medium"
                 />
                 <button 
                   onClick={() => alert('Terima kasih! Anda telah terdaftar dalam newsletter kami.')}
-                  className="bg-indigo-600 hover:bg-indigo-500 px-3 py-2 rounded-lg text-white cursor-pointer transition-colors border border-indigo-600/20"
+                  className="ios-btn-primary px-3 py-2 border-none cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-[14px]">send</span>
                 </button>
@@ -814,6 +953,8 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+
+      </div> {/* Close the localized filter wrapper */}
 
       {/* Floating Accessibility Action Menu (FAB with options popup) */}
       <AccessibilityMenu />
@@ -851,15 +992,15 @@ function AccessibilityMenu() {
   return (
     <div className="fixed bottom-6 right-6 flex flex-col gap-3 z-[9999]">
       {showAccessMenu && (
-        <div className="flex flex-col gap-2 bg-white/95 backdrop-blur-xl p-3.5 rounded-2xl shadow-xl border border-slate-200 mb-2 w-60 animate-fade-in text-slate-800">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2 pb-1.5 border-b border-slate-100">
+        <div className="flex flex-col gap-2 bg-white/90 backdrop-blur-md p-3.5 rounded-2xl shadow-xl border border-black/5 mb-2 w-60 animate-fade-in text-slate-800">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-2 pb-1.5 border-b border-slate-100">
             Pengaturan Aksesibilitas
           </p>
           <button 
             onClick={toggleHighContrast}
-            className={`flex items-center gap-2.5 p-2.5 rounded-xl text-xs font-bold text-left cursor-pointer transition-all border ${
+            className={`flex items-center gap-2.5 p-2.5 rounded-xl text-xs font-semibold text-left cursor-pointer transition-all border ${
               highContrast 
-                ? 'bg-indigo-50 text-indigo-650 border-indigo-150 shadow-sm' 
+                ? 'bg-primary/10 text-primary border-primary/20 shadow-none' 
                 : 'bg-transparent border-transparent hover:bg-slate-50 text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -868,9 +1009,9 @@ function AccessibilityMenu() {
           </button>
           <button 
             onClick={toggleGrayscale}
-            className={`flex items-center gap-2.5 p-2.5 rounded-xl text-xs font-bold text-left cursor-pointer transition-all border ${
+            className={`flex items-center gap-2.5 p-2.5 rounded-xl text-xs font-semibold text-left cursor-pointer transition-all border ${
               grayscale 
-                ? 'bg-indigo-50 text-indigo-650 border-indigo-150 shadow-sm' 
+                ? 'bg-primary/10 text-primary border-primary/20 shadow-none' 
                 : 'bg-transparent border-transparent hover:bg-slate-50 text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -879,9 +1020,9 @@ function AccessibilityMenu() {
           </button>
           <button 
             onClick={toggleDyslexia}
-            className={`flex items-center gap-2.5 p-2.5 rounded-xl text-xs font-bold text-left cursor-pointer transition-all border ${
+            className={`flex items-center gap-2.5 p-2.5 rounded-xl text-xs font-semibold text-left cursor-pointer transition-all border ${
               dyslexia 
-                ? 'bg-indigo-50 text-indigo-650 border-indigo-150 shadow-sm' 
+                ? 'bg-primary/10 text-primary border-primary/20 shadow-none' 
                 : 'bg-transparent border-transparent hover:bg-slate-50 text-slate-600 hover:text-slate-900'
             }`}
           >
@@ -889,17 +1030,17 @@ function AccessibilityMenu() {
             Font Readability
           </button>
           <div className="border-t border-slate-100 pt-2.5 flex items-center justify-between px-2">
-            <span className="text-[11px] font-bold text-slate-550">Ukuran Teks:</span>
+            <span className="text-[11px] font-bold text-slate-500">Ukuran Teks:</span>
             <div className="flex gap-1.5">
               <button 
                 onClick={decreaseFontSize}
-                className="w-8 h-8 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl flex items-center justify-center font-bold text-xs text-slate-600 transition-colors"
+                className="w-8 h-8 bg-slate-100 hover:bg-slate-200 border-none rounded-xl flex items-center justify-center font-bold text-xs text-slate-600 transition-colors cursor-pointer"
               >
                 A-
               </button>
               <button 
                 onClick={increaseFontSize}
-                className="w-8 h-8 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl flex items-center justify-center font-bold text-xs text-slate-600 transition-colors"
+                className="w-8 h-8 bg-slate-100 hover:bg-slate-200 border-none rounded-xl flex items-center justify-center font-bold text-xs text-slate-600 transition-colors cursor-pointer"
               >
                 A+
               </button>
@@ -915,7 +1056,7 @@ function AccessibilityMenu() {
           }
           setShowAccessMenu(!showAccessMenu);
         }}
-        className="w-14 h-14 bg-gradient-to-r from-indigo-600 to-cyan-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all cursor-pointer border border-indigo-600/20"
+        className="w-14 h-14 bg-gradient-to-r from-primary to-secondary text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all cursor-pointer border border-black/5"
       >
         <span className="material-symbols-outlined text-[28px]">accessibility_new</span>
       </button>

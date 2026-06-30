@@ -1,33 +1,31 @@
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Atkinson+Hyperlegible+Next:wght@400;500;600;700&display=swap');
 
 @import "tailwindcss";
 
-
 @theme {
-  /* Design Tokens - Colors (Premium Light Inclusivity Theme) */
-  --color-primary: #4f46e5; /* Premium Indigo */
+  /* Design Tokens - Colors (Reverted to Original Premium Indigo/Cyan Theme) */
+  --color-primary: #4f46e5; /* Original Premium Indigo */
   --color-primary-hover: #4338ca;
   --color-primary-container: rgba(79, 70, 229, 0.08);
   --color-on-primary: #ffffff;
   --color-on-primary-container: #3730a3;
   
-  --color-secondary: #0ea5e9; /* Premium Cyan-Blue */
+  --color-secondary: #0ea5e9; /* Original Premium Cyan-Blue */
   --color-secondary-container: rgba(14, 165, 233, 0.08);
   --color-on-secondary: #ffffff;
   --color-on-secondary-container: #0369a1;
   
-  --color-tertiary: #10b981;
+  --color-tertiary: #10b981; /* Original Green */
   --color-tertiary-container: rgba(16, 185, 129, 0.08);
   --color-on-tertiary: #ffffff;
   --color-on-tertiary-container: #065f46;
   
-  --color-error: #f43f5e;
+  --color-error: #f43f5e; /* Original Red */
   --color-error-container: rgba(244, 63, 94, 0.08);
   --color-on-error: #ffffff;
   --color-on-error-container: #9f1239;
   
-  --color-background: #f8fafc; /* Very light background (slate-50) */
+  --color-background: #f8fafc; /* Original slate-50 background */
   --color-surface: #ffffff; /* Pure white surface */
   --color-on-background: #0f172a; /* Slate-900 */
   --color-on-surface: #1e293b; /* Slate-800 */
@@ -42,9 +40,9 @@
   --color-surface-container-high: #e2e8f0;
   --color-surface-container-highest: #cbd5e1;
 
-  /* Font Families */
-  --font-display: 'Inter', sans-serif;
-  --font-body-md: 'Inter', sans-serif;
+  /* Font Families - Native iOS stack with Inter fallback for clean look */
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Inter", sans-serif;
+  --font-body-md: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter", sans-serif;
 }
 
 /* Custom Base & Utility Classes */
@@ -56,6 +54,7 @@
 
 body {
   background-color: var(--color-background);
+  /* Original Premium Indigo & Cyan background gradients */
   background-image: 
     radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.05) 0%, transparent 40%),
     radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.04) 0%, transparent 40%);
@@ -63,28 +62,90 @@ body {
   font-family: var(--font-body-md);
   color: var(--color-on-background);
   min-height: 100vh;
+  letter-spacing: -0.011em;
 }
 
-.glass-card {
-  background: rgba(255, 255, 255, 0.8);
+/* iOS-Style Upgraded Glass Card */
+.ios-card {
+  background: rgba(255, 255, 255, 0.82);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+  border-radius: 16px;
   border: 1px solid rgba(226, 232, 240, 0.8);
-  box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.05), 0 1px 3px 0 rgba(15, 23, 42, 0.03);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.03), 0 1px 2px rgba(15, 23, 42, 0.02);
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.25s ease;
 }
 
-.glass-card:hover {
-  border-color: rgba(99, 102, 241, 0.25);
-  box-shadow: 0 12px 32px -8px rgba(99, 102, 241, 0.08);
+.ios-card:hover {
+  transform: scale(1.006) translateY(-2px);
+  border-color: rgba(99, 102, 241, 0.25); /* Indigo highlight border on hover */
+  box-shadow: 0 12px 32px rgba(99, 102, 241, 0.08), 0 1px 2px rgba(99, 102, 241, 0.02);
 }
 
-.place-card {
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+/* iOS Indigo Primary Button */
+.ios-btn-primary {
+  background: var(--color-primary); /* Premium Indigo */
+  color: var(--color-on-primary);
+  border-radius: 12px;
+  font-weight: 600;
+  border: none;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.place-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.08);
+.ios-btn-primary:hover {
+  background: var(--color-primary-hover);
+  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.3);
+  transform: translateY(-0.5px);
+}
+
+.ios-btn-primary:active {
+  transform: scale(0.97);
+  opacity: 0.95;
+}
+
+/* iOS Indigo Secondary Button */
+.ios-btn-secondary {
+  background: rgba(79, 70, 229, 0.08); /* Soft Indigo Container */
+  color: var(--color-primary); /* Indigo Text */
+  border-radius: 12px;
+  font-weight: 600;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.ios-btn-secondary:hover {
+  background: rgba(79, 70, 229, 0.12);
+}
+
+.ios-btn-secondary:active {
+  transform: scale(0.97);
+}
+
+/* iOS Clean Search Input */
+.ios-search-input {
+  background: rgba(15, 23, 42, 0.05); /* Slate Light Fill */
+  border: 1px solid rgba(15, 23, 42, 0.04);
+  border-radius: 12px;
+  padding: 10px 12px 10px 38px;
+  font-size: 14px;
+  color: var(--color-on-surface);
+  transition: all 0.2s ease;
+}
+
+.ios-search-input:focus {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.06);
+  outline: none;
+}
+
+/* iOS Translucent Navbar */
+.ios-navbar {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: saturate(190%) blur(20px);
+  -webkit-backdrop-filter: saturate(190%) blur(20px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .hide-scrollbar::-webkit-scrollbar {
@@ -96,16 +157,6 @@ body {
   scrollbar-width: none;
 }
 
-/* Tab active style */
-.tab-active {
-  border-bottom: 2px solid #004ac6;
-  color: #004ac6;
-}
-
-.hidden-form {
-  display: none;
-}
-
 /* Accessibility Filters */
 .grayscale-mode {
   filter: grayscale(1) !important;
@@ -115,29 +166,11 @@ body {
   font-family: 'Atkinson Hyperlegible Next', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif !important;
 }
 
-/* Keyframes & Animations */
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
-}
-
-@keyframes wave {
-  0%, 100% {
-    transform: rotate(0deg);
-  }
-  50% {
-    transform: rotate(18deg);
-  }
-}
-
+/* Animation Keyframes */
 @keyframes fade-in {
   from {
     opacity: 0;
-    transform: scale(0.95);
+    transform: scale(0.98);
   }
   to {
     opacity: 1;
@@ -148,11 +181,11 @@ body {
 @keyframes slide-up {
   from {
     opacity: 0;
-    transform: translate(-50%, 20px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
-    transform: translate(-50%, 0);
+    transform: translateY(0);
   }
 }
 
@@ -165,34 +198,15 @@ body {
   }
 }
 
-.animate-float {
-  animation: float 4s ease-in-out infinite;
-}
-
-.animate-wave {
-  animation: wave 2s ease-in-out infinite;
-  transform-origin: 70% 70%;
-}
-
 .animate-fade-in {
-  animation: fade-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fade-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-slide-up {
-  animation: slide-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-blink {
   animation: blink 4s ease-in-out infinite;
   transform-origin: center;
 }
-
-/* Custom shadow classes */
-.custom-shadow {
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 8px -1px rgba(0, 0, 0, 0.03);
-}
-
-.custom-shadow-lg {
-  box-shadow: 0 10px 30px -4px rgba(0, 0, 0, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.04);
-}
-
