@@ -49,13 +49,32 @@ export const AccessibilityProvider: React.FC<{ children: React.ReactNode }> = ({
     
     // Try to find a premium or native Indonesian voice
     const voices = window.speechSynthesis.getVoices();
-    const idVoice = voices.find(v => v.lang.startsWith('id') || v.lang.toLowerCase().includes('indonesia'));
-    if (idVoice) {
-      utterance.voice = idVoice;
+    const idVoices = voices.filter(v => v.lang.startsWith('id') || v.lang.toLowerCase().includes('indonesia'));
+    
+    // Sort to prioritize natural/neural/online/Google premium voices
+    idVoices.sort((a, b) => {
+      const aName = a.name.toLowerCase();
+      const bName = b.name.toLowerCase();
+      
+      const aScore = (aName.includes('natural') ? 10 : 0) + 
+                     (aName.includes('neural') ? 10 : 0) + 
+                     (aName.includes('google') ? 8 : 0) + 
+                     (aName.includes('online') ? 5 : 0);
+                     
+      const bScore = (bName.includes('natural') ? 10 : 0) + 
+                     (bName.includes('neural') ? 10 : 0) + 
+                     (bName.includes('google') ? 8 : 0) + 
+                     (bName.includes('online') ? 5 : 0);
+                     
+      return bScore - aScore;
+    });
+
+    if (idVoices.length > 0) {
+      utterance.voice = idVoices[0];
     }
     
-    utterance.rate = 0.95; // Natural conversational speed
-    utterance.pitch = 1.22; // Cheerful cute mascot robot persona!
+    utterance.rate = 1.0; // Normal human reading speed
+    utterance.pitch = 1.0; // Natural voice pitch (avoids the squeaky AI/robot effect)
     window.speechSynthesis.speak(utterance);
   };
 

@@ -68,6 +68,7 @@ export default function HomePage() {
 
   // Selected place state for map interaction
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Fetch places from Go API
   useEffect(() => {
@@ -199,7 +200,7 @@ export default function HomePage() {
     setActiveFilter(category);
   };
 
-  const selectedPlace = places.find(p => p.id === selectedPlaceId) || places[0];
+  const selectedPlace = selectedPlaceId ? (places.find(p => p.id === selectedPlaceId) || null) : null;
 
   const faqs = [
     {
@@ -632,7 +633,10 @@ export default function HomePage() {
             places.map((place) => (
                 <div 
                   key={place.id}
-                  onClick={() => setSelectedPlaceId(place.id)}
+                  onClick={() => {
+                    setSelectedPlaceId(place.id);
+                    setIsModalOpen(true);
+                  }}
                   className={`ios-card p-4.5 flex gap-4 cursor-pointer relative overflow-hidden transition-all duration-300 ${
                     selectedPlaceId === place.id 
                       ? 'border-primary ring-1 ring-primary bg-primary/[0.02] scale-[1.01]' 
@@ -656,45 +660,47 @@ export default function HomePage() {
 
                   {/* Place Info details */}
                   <div className="flex-1 flex flex-col justify-between min-w-0">
-                    <div className="flex justify-between items-start gap-1">
-                      <div className="flex items-center gap-1">
-                        <span className="text-[9px] font-bold tracking-wide uppercase bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
-                          {place.category.replace('_', ' ')}
-                        </span>
-                        <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${
-                          place.isVerified 
-                            ? 'bg-primary/5 text-primary'
-                            : 'bg-slate-100 text-slate-500'
+                    <div>
+                      <div className="flex justify-between items-start gap-1">
+                        <div className="flex items-center gap-1">
+                          <span className="text-[9px] font-bold tracking-wide uppercase bg-slate-100 text-slate-600 px-2 py-0.5 rounded">
+                            {place.category.replace('_', ' ')}
+                          </span>
+                          <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${
+                            place.isVerified 
+                              ? 'bg-primary/5 text-primary'
+                              : 'bg-slate-100 text-slate-500'
+                          }`}>
+                            {place.isVerified ? 'Resmi' : 'Komunitas'}
+                          </span>
+                        </div>
+                        <span className={`text-[10px] font-bold flex items-center gap-0.5 ${
+                          place.score >= 80 ? 'text-tertiary' : place.score >= 50 ? 'text-amber-600' : 'text-error'
                         }`}>
-                          {place.isVerified ? 'Resmi' : 'Komunitas'}
+                          <span className="material-symbols-outlined text-[13px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                          {place.score}%
                         </span>
                       </div>
-                      <span className={`text-[10px] font-bold flex items-center gap-0.5 ${
-                        place.score >= 80 ? 'text-tertiary' : place.score >= 50 ? 'text-amber-600' : 'text-error'
-                      }`}>
-                        <span className="material-symbols-outlined text-[13px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                        {place.score}%
-                      </span>
-                    </div>
 
-                    <h3 className="font-bold text-sm text-slate-800 mt-1 leading-snug truncate">
-                      {place.name}
-                    </h3>
-                    
-                    {/* Visual Score Bar (Horizontal) */}
-                    <div className="w-full bg-slate-100 rounded-full h-1 mt-1 overflow-hidden">
-                      <div 
-                        className={`h-full rounded-full ${
-                          place.severity === 'good' ? 'bg-tertiary' : place.severity === 'medium' ? 'bg-amber-500' : 'bg-error'
-                        }`}
-                        style={{ width: `${place.score}%` }}
-                      />
-                    </div>
+                      <h3 className="font-bold text-sm text-slate-800 mt-1 leading-snug truncate">
+                        {place.name}
+                      </h3>
+                      
+                      {/* Visual Score Bar (Horizontal) */}
+                      <div className="w-full bg-slate-100 rounded-full h-1 mt-1 overflow-hidden">
+                        <div 
+                          className={`h-full rounded-full ${
+                            place.severity === 'good' ? 'bg-tertiary' : place.severity === 'medium' ? 'bg-amber-500' : 'bg-error'
+                          }`}
+                          style={{ width: `${place.score}%` }}
+                        />
+                      </div>
 
-                    <p className="text-[11px] text-slate-500 mt-1 line-clamp-1 flex items-center gap-0.5 font-medium">
-                      <span className="material-symbols-outlined text-[12px]">location_on</span>
-                      {place.address}
-                    </p>
+                      <p className="text-[11px] text-slate-500 mt-1 line-clamp-1 flex items-center gap-0.5 font-medium">
+                        <span className="material-symbols-outlined text-[12px]">location_on</span>
+                        {place.address}
+                      </p>
+                    </div>
 
                     {/* Facility Chips */}
                     <div className="flex flex-wrap gap-1 mt-2">
@@ -764,11 +770,20 @@ export default function HomePage() {
 
           {/* Map Overlay Card for currently highlighted Place */}
           {selectedPlace && (
-            <div className="absolute bottom-4 left-4 w-72 bg-white/90 backdrop-blur-md rounded-2xl border border-black/5 shadow-lg p-4 space-y-3 z-10 animate-fade-in text-slate-800">
+            <div className="absolute bottom-4 left-4 w-80 bg-white/90 backdrop-blur-md rounded-2xl border border-black/5 shadow-lg p-4 space-y-3.5 z-10 animate-fade-in text-slate-800">
+              {/* Close Button */}
+              <button 
+                onClick={() => setSelectedPlaceId(null)}
+                className="absolute top-2.5 right-2.5 text-slate-400 hover:text-slate-600 bg-white/80 hover:bg-slate-100 p-1 rounded-full cursor-pointer transition-colors shadow-none border-none z-20 flex items-center justify-center"
+                title="Tutup Info"
+              >
+                <span className="material-symbols-outlined text-[16px] font-bold">close</span>
+              </button>
+
               {/* Place Image on top of overlay */}
               <div className="w-full h-24 rounded-xl overflow-hidden bg-slate-100 relative border border-black/5">
                 <img src={selectedPlace.image} alt={selectedPlace.name} className="w-full h-full object-cover" />
-                <span className={`absolute top-2 right-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                <span className={`absolute bottom-2 right-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${
                   selectedPlace.severity === 'good' 
                     ? 'bg-tertiary text-white' 
                     : selectedPlace.severity === 'medium' 
@@ -785,11 +800,46 @@ export default function HomePage() {
                     {selectedPlace.category.replace('_', ' ')}
                   </span>
                 </div>
-                <h4 className="text-xs font-bold text-slate-900 truncate">{selectedPlace.name}</h4>
+                <h4 className="text-xs font-bold text-slate-900 truncate pr-6">{selectedPlace.name}</h4>
                 <p className="text-[10px] text-slate-500 font-medium leading-normal flex items-start gap-0.5 line-clamp-1">
                   <span className="material-symbols-outlined text-[12px] mt-0.5">location_on</span>
                   {selectedPlace.address}
                 </p>
+              </div>
+
+              {/* Facilities Grid in Map Overlay */}
+              <div className="border-t border-slate-100 pt-3">
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2">Fasilitas Aksesibilitas</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { name: 'Ramp', key: 'RAMP', icon: 'accessible' },
+                    { name: 'Toilet', key: 'TOILET DIFABEL', icon: 'wc' },
+                    { name: 'Guiding Block', key: 'GUIDING BLOCK', icon: 'blind' },
+                    { name: 'Parkir', key: 'PARKIR KHUSUS', icon: 'local_parking' },
+                    { name: 'Pintu Lebar', key: 'PINTU LEBAR', icon: 'sensor_door' },
+                    { name: 'Lift', key: 'LIFT', icon: 'elevator' },
+                  ].map((fac) => {
+                    const isAvailable = selectedPlace.facilities.includes(fac.key);
+                    return (
+                      <div 
+                        key={fac.key} 
+                        className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg border text-[9px] font-bold transition-all ${
+                          isAvailable 
+                            ? 'bg-tertiary/5 border-tertiary/20 text-tertiary' 
+                            : 'bg-slate-50 border-black/[0.02] text-slate-400'
+                        }`}
+                      >
+                        <span className="material-symbols-outlined text-[13px]">
+                          {fac.icon}
+                        </span>
+                        <span className="truncate max-w-[80px]">{fac.name}</span>
+                        <span className="material-symbols-outlined text-[11px] ml-auto">
+                          {isAvailable ? 'check' : 'close'}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
               
               <div className="flex gap-2 pt-2 border-t border-slate-100">
@@ -955,6 +1005,122 @@ export default function HomePage() {
       </footer>
 
       </div> {/* Close the localized filter wrapper */}
+
+      {/* iOS-Style Place Details Popup Modal */}
+      {isModalOpen && selectedPlace && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[10000] flex items-center justify-center p-4 animate-fade-in">
+          <div className="bg-white rounded-[28px] max-w-4xl w-full overflow-hidden relative shadow-2xl animate-fade-in flex flex-col md:flex-row max-h-[90vh] md:max-h-[85vh] text-slate-800 border border-slate-100">
+            {/* Close Button */}
+            <button 
+              onClick={() => setIsModalOpen(false)}
+              className="absolute top-4 right-4 w-9 h-9 bg-white/80 hover:bg-white text-slate-700 hover:text-slate-900 rounded-full flex items-center justify-center cursor-pointer transition-all shadow-md hover:scale-105 border-none z-50"
+              title="Tutup Rincian"
+            >
+              <span className="material-symbols-outlined text-[20px] font-bold">close</span>
+            </button>
+
+            {/* Left Column: Large Image */}
+            <div className="w-full md:w-1/2 h-64 md:h-auto relative bg-slate-100 border-r border-slate-100 flex-shrink-0">
+              <img src={selectedPlace.image} alt={selectedPlace.name} className="w-full h-full object-cover" />
+              <div className="absolute bottom-4 left-4 right-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-6 rounded-2xl text-white">
+                <span className="bg-primary text-white text-[9px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                  {selectedPlace.category.replace('_', ' ')}
+                </span>
+                <h3 className="text-xl font-bold mt-2 leading-tight">{selectedPlace.name}</h3>
+                <p className="text-[10px] text-slate-200 mt-1.5 flex items-start gap-0.5 leading-normal">
+                  <span className="material-symbols-outlined text-[12px] mt-0.5">location_on</span>
+                  {selectedPlace.address}
+                </p>
+              </div>
+            </div>
+
+            {/* Right Column: Detailed Accessibility Checklist */}
+            <div className="w-full md:w-1/2 p-6 md:p-8 overflow-y-auto flex flex-col justify-between max-h-[calc(90vh-256px)] md:max-h-[85vh]">
+              <div className="space-y-6">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                      Kategori Fasilitas
+                    </p>
+                    <span className={`text-xs font-bold px-3 py-1 rounded-full ${
+                      selectedPlace.severity === 'good' 
+                        ? 'bg-tertiary/10 text-tertiary' 
+                        : selectedPlace.severity === 'medium' 
+                          ? 'bg-amber-500/10 text-amber-600' 
+                          : 'bg-error/10 text-error'
+                    }`}>
+                      {selectedPlace.score}% Aksesibilitas
+                    </span>
+                  </div>
+                  <h4 className="text-lg font-extrabold text-slate-900 mt-2">Status Aksesibilitas Difabel</h4>
+                  <p className="text-slate-500 text-xs mt-1 font-medium leading-relaxed">
+                    Audit dilakukan oleh komunitas DisaCare untuk memverifikasi sarana aksesibilitas bagi penyandang disabilitas fisik dan sensorik di Bandung.
+                  </p>
+                </div>
+
+                {/* Facilities Checklist Grid */}
+                <div className="space-y-3">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">
+                    Daftar Fasilitas & Kelayakan:
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {[
+                      { name: 'Ramp Kursi Roda', key: 'RAMP', desc: 'Jalur landai landai kursi roda', icon: 'accessible' },
+                      { name: 'Toilet Disabilitas', key: 'TOILET DIFABEL', desc: 'WC dengan pegangan handrail', icon: 'wc' },
+                      { name: 'Guiding Block', key: 'GUIDING BLOCK', desc: 'Pemandu taktil tunanetra', icon: 'blind' },
+                      { name: 'Parkir Khusus', key: 'PARKIR KHUSUS', desc: 'Parkir di depan lobi', icon: 'local_parking' },
+                      { name: 'Pintu Lebar', key: 'PINTU LEBAR', desc: 'Pintu bersensor/dorong mudah', icon: 'sensor_door' },
+                      { name: 'Lift Luas', key: 'LIFT', desc: 'Lift luas tombol braille', icon: 'elevator' },
+                    ].map((fac) => {
+                      const isAvailable = selectedPlace.facilities.includes(fac.key);
+                      return (
+                        <div 
+                          key={fac.key} 
+                          className={`flex items-start gap-2.5 p-3 rounded-2xl border text-xs font-semibold transition-all ${
+                            isAvailable 
+                              ? 'bg-tertiary/5 border-tertiary/20 text-tertiary' 
+                              : 'bg-slate-50 border-black/[0.02] text-slate-400'
+                          }`}
+                        >
+                          <span className="material-symbols-outlined text-[18px] mt-0.5">
+                            {fac.icon}
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-extrabold text-[11px] text-slate-800">{fac.name}</p>
+                            <p className="text-[9px] text-slate-400 font-medium leading-normal mt-0.5">{fac.desc}</p>
+                          </div>
+                          <span className="material-symbols-outlined text-[14px] font-black ml-auto mt-0.5">
+                            {isAvailable ? 'check_circle' : 'cancel'}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Actions */}
+              <div className="flex gap-3 pt-6 border-t border-slate-100 mt-6">
+                <Link href={`/place/${selectedPlace.id}`} className="flex-1" onClick={() => setIsModalOpen(false)}>
+                  <button className="w-full ios-btn-primary py-3.5 text-xs font-bold cursor-pointer text-center">
+                    Buka Detail & Foto Bukti
+                  </button>
+                </Link>
+                <a 
+                  href={`https://maps.google.com/?q=${encodeURIComponent(selectedPlace.name + " " + selectedPlace.address)}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="flex-grow-[1.3]"
+                >
+                  <button className="w-full py-3.5 border border-primary/20 hover:border-primary text-primary bg-primary/5 hover:bg-primary/10 rounded-2xl transition-all cursor-pointer text-center font-bold text-xs shadow-none">
+                    Rute Google Maps
+                  </button>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Floating Accessibility Action Menu (FAB with options popup) */}
       <AccessibilityMenu />

@@ -6,6 +6,11 @@ import { AccessibilityProvider } from "../lib/context/AccessibilityContext";
 export const metadata: Metadata = {
   title: "DisaCare - Direktori Fasilitas Publik Inklusif Bandung",
   description: "Platform portal informasi dan direktori spasial aksesibilitas fasilitas publik di Kota Bandung bagi penyandang disabilitas.",
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({

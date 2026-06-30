@@ -68,6 +68,100 @@ export default function PlaceDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  interface Comment {
+    id: string;
+    placeId: string;
+    author: string;
+    content: string;
+    rating: number;
+    date: string;
+  }
+
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [newCommentName, setNewCommentName] = useState('');
+  const [newCommentContent, setNewCommentContent] = useState('');
+  const [newCommentRating, setNewCommentRating] = useState(5);
+
+  useEffect(() => {
+    if (!place) return;
+
+    const baseMockComments: Comment[] = [
+      {
+        id: 'c1',
+        placeId: 'place-001',
+        author: 'Ahmad Fauzi',
+        content: 'PVJ sangat luar biasa aksesibilitasnya. Petugas sigap membantu saat menurunkan kursi roda dari mobil. Ramp ke arah lobi utama sangat landai.',
+        rating: 5,
+        date: '3 hari yang lalu'
+      },
+      {
+        id: 'c2',
+        placeId: 'place-001',
+        author: 'Siti Rahma',
+        content: 'Toilet ramah difabel di lantai LG bersih dan pegangan tangannya sangat kokoh. Sayangnya, ubin pemandu (guiding block) di area parkir luar agak sedikit terhalang tanaman pot.',
+        rating: 4,
+        date: '1 minggu yang lalu'
+      },
+      {
+        id: 'c3',
+        placeId: 'place-002',
+        author: 'Dr. Hendra',
+        content: 'RS Hasan Sadikin memiliki jalur kursi roda yang menghubungkan antar gedung dengan sangat baik. Namun antrean toilet difabel terkadang campur dengan toilet umum.',
+        rating: 4,
+        date: '2 hari yang lalu'
+      },
+      {
+        id: 'c4',
+        placeId: 'place-003',
+        author: 'Fajar Nugraha',
+        content: 'Beberapa gedung lama di ITB masih memiliki tangga tinggi tanpa ramp alternatif, namun gedung-gedung baru (seperti CRCS) sangat aksesibel dan ramah kursi roda.',
+        rating: 3,
+        date: '5 hari yang lalu'
+      },
+      {
+        id: 'c5',
+        placeId: 'place-004',
+        author: 'Dewi Lestari',
+        content: 'Taman Balai Kota Bandung jalurnya rata dan aspalnya bagus untuk kursi roda elektrik. Sangat nyaman untuk jalan-jalan sore bersama keluarga.',
+        rating: 5,
+        date: '4 hari yang lalu'
+      }
+    ];
+
+    const filteredMock = baseMockComments.filter(c => c.placeId === place.id || c.placeId === id);
+    const saved = localStorage.getItem(`disacare_comments_${place.id}`);
+    const localComments = saved ? JSON.parse(saved) : [];
+
+    setComments([...localComments, ...filteredMock]);
+  }, [place, id]);
+
+  const handleSubmitComment = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!place || !newCommentName.trim() || !newCommentContent.trim()) return;
+
+    const commentToAdd: Comment = {
+      id: `local-${Date.now()}`,
+      placeId: place.id,
+      author: newCommentName,
+      content: newCommentContent,
+      rating: newCommentRating,
+      date: 'Baru saja'
+    };
+
+    const updated = [commentToAdd, ...comments];
+    setComments(updated);
+
+    const saved = localStorage.getItem(`disacare_comments_${place.id}`);
+    const currentLocals = saved ? JSON.parse(saved) : [];
+    localStorage.setItem(`disacare_comments_${place.id}`, JSON.stringify([commentToAdd, ...currentLocals]));
+
+    setNewCommentName('');
+    setNewCommentContent('');
+    setNewCommentRating(5);
+
+    speak('Terima kasih! Komentar dan ulasan aksesibilitas Anda telah berhasil disimpan.');
+  };
+
   useEffect(() => {
     if (!id) return;
 
@@ -386,6 +480,126 @@ export default function PlaceDetailPage() {
             <span className="text-base font-bold">Dengarkan Informasi Tempat Ini</span>
           </button>
         </div>
+
+        {/* Community Comments & Reviews Section */}
+        <section className="mt-12 bg-white/80 backdrop-blur-md rounded-[24px] border border-black/5 p-6 md:p-8 space-y-6 shadow-sm">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div>
+              <h3 className="text-base font-extrabold text-slate-900">Ulasan & Komentar Masyarakat</h3>
+              <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Bagikan pengalaman aksesibilitas Anda di tempat ini untuk rekan difabel lainnya.</p>
+            </div>
+            <div className="flex items-center gap-1.5 bg-primary/5 text-primary px-3 py-1.5 rounded-full border border-primary/10">
+              <span className="material-symbols-outlined text-[16px] font-bold">rate_review</span>
+              <span className="text-xs font-black">{comments.length} Ulasan</span>
+            </div>
+          </div>
+
+          {/* Form to submit comment */}
+          <form onSubmit={handleSubmitComment} className="space-y-4 bg-slate-50/50 p-4.5 rounded-2xl border border-black/[0.02]">
+            <h4 className="text-xs font-bold text-slate-800">Tulis Ulasan Aksesibilitas Baru:</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">Nama Lengkap</label>
+                <input 
+                  type="text" 
+                  required
+                  placeholder="Masukkan nama Anda"
+                  value={newCommentName}
+                  onChange={(e) => setNewCommentName(e.target.value)}
+                  className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-primary font-medium"
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">Rating Aksesibilitas</label>
+                <div className="flex items-center gap-2 h-10 pl-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button 
+                      key={star}
+                      type="button"
+                      onClick={() => setNewCommentRating(star)}
+                      className="border-none bg-transparent cursor-pointer p-0.5 hover:scale-110 active:scale-95 transition-all"
+                    >
+                      <span className={`material-symbols-outlined text-[22px] ${
+                        star <= newCommentRating ? 'text-amber-500' : 'text-slate-200'
+                      }`} style={{ fontVariationSettings: star <= newCommentRating ? "'FILL' 1" : "" }}>
+                        star
+                      </span>
+                    </button>
+                  ))}
+                  <span className="text-xs font-bold text-slate-500 ml-2">({newCommentRating}/5 Bintang)</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">Isi Ulasan</label>
+              <textarea 
+                required
+                rows={3}
+                placeholder="Bagikan ulasan mengenai kelayakan sarana (contoh: kondisi ramp, ketersediaan toilet difabel, kebersihan, kemudahan parkir)..."
+                value={newCommentContent}
+                onChange={(e) => setNewCommentContent(e.target.value)}
+                className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-primary font-medium resize-none leading-relaxed"
+              />
+            </div>
+
+            <div className="flex justify-end">
+              <button 
+                type="submit"
+                className="ios-btn-primary px-6 py-3 text-xs font-bold flex items-center gap-2 cursor-pointer shadow-sm active:scale-95 transition-all"
+              >
+                <span className="material-symbols-outlined text-[15px]">send</span>
+                Kirim Ulasan Anda
+              </button>
+            </div>
+          </form>
+
+          {/* Comments List */}
+          <div className="space-y-4">
+            {comments.length === 0 ? (
+              <div className="py-12 text-center text-slate-450 space-y-2">
+                <span className="material-symbols-outlined text-[36px] text-slate-300">chat_bubble_outline</span>
+                <p className="text-xs font-bold">Belum ada komentar untuk tempat ini.</p>
+                <p className="text-[10px] text-slate-400">Jadilah yang pertama untuk membagikan pengalaman Anda!</p>
+              </div>
+            ) : (
+              comments.map((comment) => (
+                <div key={comment.id} className="bg-slate-50/20 hover:bg-slate-50/40 p-4.5 rounded-2xl border border-black/5 transition-all duration-300 flex items-start gap-4">
+                  {/* Avatar */}
+                  <div className="w-10 h-10 rounded-full bg-primary/5 border border-primary/10 text-primary flex items-center justify-center font-bold text-xs flex-shrink-0">
+                    {comment.author.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                  </div>
+                  
+                  {/* Comment Details */}
+                  <div className="flex-1 min-w-0 space-y-1.5">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <div className="flex items-center gap-2">
+                        <h5 className="text-xs font-bold text-slate-900">{comment.author}</h5>
+                        <div className="flex items-center">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <span 
+                              key={star} 
+                              className={`material-symbols-outlined text-[12px] ${
+                                star <= comment.rating ? 'text-amber-500' : 'text-slate-200'
+                              }`}
+                              style={{ fontVariationSettings: star <= comment.rating ? "'FILL' 1" : "" }}
+                            >
+                              star
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <span className="text-[9px] font-bold text-slate-450">{comment.date}</span>
+                    </div>
+                    <p className="text-slate-600 text-xs leading-relaxed font-medium">
+                      {comment.content}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </section>
       </main>
 
       </div> {/* Close the localized filter wrapper */}
